@@ -1,0 +1,3645 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>ViraHits — Painel</title>
+<style>
+  @import url('https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@500;600;700&family=Baloo+2:wght@700;800&family=Inter:wght@400;500;600&display=swap');
+
+  :root{
+    --bg: #08070d;
+    --card: #15121f;
+    --card-2: #1b1729;
+    --border: rgba(255,255,255,0.08);
+    --text: #f4f2f8;
+    --text-muted: #8f8a9e;
+    --pink: #ff2d5f;
+    --orange: #c81151;
+    --purple: #7c3aed;
+    --success: #22c55e;
+    --sidebar-w: 240px;
+  }
+  *{ margin:0; padding:0; box-sizing:border-box; }
+  body{ background:var(--bg); color:var(--text); font-family:'Inter',sans-serif; }
+  h1,h2,.display{ font-family:'Space Grotesk',sans-serif; font-weight:700; letter-spacing:-0.02em; }
+
+  .glow{ position:fixed; border-radius:50%; filter:blur(140px); opacity:0.18; z-index:0; pointer-events:none; }
+  .glow-1{ width:600px; height:600px; background:var(--purple); top:-200px; left:200px; }
+
+  /* ===== Layout ===== */
+  .layout{ display:flex; min-height:100vh; }
+
+  /* Sidebar */
+  .sidebar{
+    width:var(--sidebar-w); flex-shrink:0;
+    background:var(--card); border-right:1px solid var(--border);
+    display:flex; flex-direction:column;
+    position:sticky; top:0; height:100vh; z-index:10;
+  }
+  .sidebar-logo{
+    padding:24px 22px; display:flex; align-items:center; gap:2px;
+    font-family:'Baloo 2',sans-serif; font-weight:800; font-size:19px;
+  }
+  .sidebar-logo .v{
+    width:20px; height:20px; border-radius:6px;
+    background:linear-gradient(135deg, var(--pink), var(--orange));
+    display:inline-flex; align-items:center; justify-content:center; font-size:11px; margin-right:6px;
+  }
+  .sidebar-nav{ flex:1; padding:8px 12px; overflow-y:auto; }
+  .nav-item{
+    display:flex; align-items:center; gap:11px;
+    padding:11px 14px; border-radius:10px; margin-bottom:2px;
+    font-size:13.5px; color:var(--text-muted); cursor:pointer;
+    transition:all .15s; text-decoration:none;
+  }
+  .nav-item:hover{ background:rgba(255,255,255,0.04); color:var(--text); }
+  .nav-ic{ width:17px; height:17px; flex-shrink:0; }
+  .nav-item.active{
+    background:linear-gradient(90deg, var(--pink), var(--orange));
+    color:#fff; font-weight:600;
+  }
+  .nav-item .badge-new{
+    font-size:8.5px; background:rgba(34,197,94,0.15); color:#4ade80;
+    padding:2px 6px; border-radius:100px; margin-left:auto; font-weight:700;
+    border:1px solid rgba(34,197,94,0.3);
+  }
+  .sidebar-footer{ padding:16px 12px; border-top:1px solid var(--border); }
+  .sidebar-overlay{ display:none; }
+  .hamburger{
+    display:none; width:36px; height:36px; border-radius:10px; background:var(--card-2);
+    border:1px solid var(--border); align-items:center; justify-content:center;
+    cursor:pointer; color:var(--text); font-size:16px;
+  }
+
+  /* Topbar */
+  .main{ flex:1; min-width:0; position:relative; z-index:1; }
+  .topbar{
+    display:flex; align-items:center; justify-content:space-between;
+    padding:18px 28px; border-bottom:1px solid var(--border);
+    background:rgba(8,7,13,0.7); backdrop-filter:blur(10px);
+    position:sticky; top:0; z-index:9;
+  }
+  .topbar-user{ display:flex; align-items:center; gap:10px; }
+  .avatar{
+    width:36px; height:36px; border-radius:50%;
+    background:linear-gradient(135deg, var(--pink), var(--orange));
+    display:flex; align-items:center; justify-content:center;
+    font-family:'Space Grotesk'; font-weight:700; font-size:13px; color:#fff;
+  }
+  .topbar-user .name{ font-size:13.5px; font-weight:600; }
+  .topbar-user .plan{ font-size:11px; color:var(--text-muted); }
+  .topbar-right{ display:flex; align-items:center; gap:14px; }
+  .btn-upgrade{
+    background:linear-gradient(90deg, var(--pink), var(--orange)); color:#fff;
+    border:none; padding:9px 18px; border-radius:9px; font-size:13px; font-weight:600;
+    cursor:pointer; font-family:inherit;
+  }
+  .icon-btn{
+    width:36px; height:36px; border-radius:10px; background:var(--card-2); border:1px solid var(--border);
+    display:flex; align-items:center; justify-content:center; cursor:pointer; color:var(--text-muted); font-size:15px;
+    position:relative;
+  }
+  .icon-btn .dot-alert{
+    position:absolute; top:6px; right:7px; width:6px; height:6px; border-radius:50%; background:var(--pink);
+  }
+
+  .content{ max-width:1100px; margin:0 auto; padding:28px 28px 80px; }
+  .page-title{ font-size:24px; margin-bottom:4px; }
+  .page-sub{ color:var(--text-muted); font-size:13.5px; margin-bottom:26px; }
+
+  /* Cards grid */
+  .cards-row{ display:grid; grid-template-columns:1fr 1.4fr; gap:18px; margin-bottom:18px; }
+  .card{ background:var(--card); border:1px solid var(--border); border-radius:16px; padding:24px; }
+  .card-label{ display:flex; align-items:center; gap:8px; font-size:13px; color:var(--text-muted); margin-bottom:16px; }
+  .card-label .ic{ width:26px; height:26px; border-radius:7px; background:rgba(255,45,95,0.1); display:flex; align-items:center; justify-content:center; font-size:12px; }
+
+  .credits-value{ font-family:'Space Grotesk'; font-size:32px; font-weight:700; margin-bottom:4px; }
+  .credits-sub{ font-size:12.5px; color:var(--text-muted); margin-bottom:18px; }
+  .btn-outline{
+    background:none; border:1px solid var(--border); color:var(--text);
+    padding:9px 16px; border-radius:9px; font-size:13px; font-weight:600; cursor:pointer; font-family:inherit;
+  }
+  .btn-outline:hover{ border-color:rgba(255,255,255,0.25); }
+
+  .cta-card{
+    background:linear-gradient(135deg, rgba(255,45,95,0.12), rgba(124,58,237,0.12));
+    border:1px solid rgba(255,45,95,0.25);
+  }
+  .cta-card h2{ font-size:21px; margin-bottom:8px; }
+  .cta-card p{ font-size:13.5px; color:#c9c4d9; margin-bottom:18px; max-width:380px; }
+  .btn-primary{
+    background:linear-gradient(90deg, var(--pink), var(--orange)); color:#fff;
+    border:none; padding:11px 22px; border-radius:10px; font-size:14px; font-weight:600;
+    cursor:pointer; font-family:inherit; display:inline-flex; align-items:center; gap:7px;
+  }
+
+  .banner{
+    display:flex; align-items:center; justify-content:space-between; flex-wrap:wrap; gap:14px;
+    background:var(--card); border:1px solid var(--border); border-radius:16px; padding:20px 24px; margin-bottom:24px;
+  }
+  .banner-left{ display:flex; align-items:center; gap:14px; }
+  .banner-ic{ width:42px; height:42px; border-radius:11px; background:rgba(99,102,241,0.12); display:flex; align-items:center; justify-content:center; font-size:19px; }
+  .banner h3{ font-size:15px; margin-bottom:2px; }
+  .banner p{ font-size:13px; color:var(--text-muted); }
+
+  .section-title{ font-size:15px; font-weight:700; margin:28px 0 14px; font-family:'Space Grotesk'; }
+
+  .empty-box{
+    background:var(--card); border:1px solid var(--border); border-radius:14px;
+    padding:40px 20px; text-align:center; color:var(--text-muted); font-size:13.5px;
+  }
+
+  .plan-item{
+    display:flex; align-items:center; gap:14px;
+    background:var(--card); border:1px solid var(--border); border-radius:14px;
+    padding:16px 18px; margin-bottom:10px;
+  }
+  .plan-item .thumb{
+    width:44px; height:44px; border-radius:10px; flex-shrink:0;
+    background:linear-gradient(135deg, var(--pink), var(--orange));
+    display:flex; align-items:center; justify-content:center; font-size:17px;
+  }
+  .plan-item .info{ flex:1; min-width:0; }
+  .plan-item .info b{ display:block; font-size:14px; margin-bottom:2px; }
+  .plan-item .info span{ font-size:12px; color:var(--text-muted); }
+  .plan-item .score{
+    font-family:'Space Grotesk'; font-weight:700; font-size:16px;
+    background:rgba(34,197,94,0.12); color:#4ade80; padding:5px 12px; border-radius:9px;
+    flex-shrink:0;
+  }
+  .plan-item .status{ font-size:11px; color:var(--text-muted); flex-shrink:0; }
+
+  .filters-row{ display:flex; gap:10px; flex-wrap:wrap; margin-bottom:16px; }
+  .filter-select{
+    background:var(--card-2); border:1px solid var(--border); color:var(--text);
+    padding:9px 14px; border-radius:9px; font-size:13px; font-family:inherit;
+  }
+
+  .stats-grid{ display:grid; grid-template-columns:repeat(4,1fr); gap:14px; }
+  .stat-box{ background:var(--card); border:1px solid var(--border); border-radius:14px; padding:18px; }
+  .stat-box .n{ font-family:'Space Grotesk'; font-size:24px; font-weight:700; }
+  .stat-box .l{ font-size:12px; color:var(--text-muted); margin-top:4px; }
+
+  /* ===== Smart Links ===== */
+  .sl-header{ display:flex; align-items:flex-start; justify-content:space-between; gap:16px; flex-wrap:wrap; margin-bottom:20px; }
+  .sl-search-row{ margin-bottom:18px; }
+  .sl-search{
+    display:flex; align-items:center; gap:8px;
+    background:var(--card); border:1px solid var(--border); border-radius:10px;
+    padding:0 14px; height:44px; max-width:360px; color:var(--text-muted);
+  }
+  .sl-search input{ flex:1; background:none; border:none; color:var(--text); font-size:13.5px; font-family:inherit; }
+  .sl-search input:focus{ outline:none; }
+
+  .sl-card{
+    display:flex; align-items:center; gap:14px;
+    background:var(--card); border:1px solid var(--border); border-radius:14px;
+    padding:14px 16px; margin-bottom:10px;
+  }
+  .sl-card-cover{
+    width:52px; height:52px; border-radius:10px; flex-shrink:0; object-fit:cover;
+    background:linear-gradient(135deg, var(--pink), var(--orange));
+  }
+  .sl-card-info{ flex:1; min-width:0; }
+  .sl-card-info b{ display:block; font-size:14.5px; margin-bottom:2px; white-space:nowrap; overflow:hidden; text-overflow:ellipsis; }
+  .sl-card-info span{ font-size:12.5px; color:var(--text-muted); }
+  .sl-card-link{
+    font-size:12px; color:#ff5f85; text-decoration:none; display:block; margin-top:3px;
+    white-space:nowrap; overflow:hidden; text-overflow:ellipsis;
+  }
+  .sl-card-stats{ display:flex; gap:18px; flex-shrink:0; }
+  .sl-card-stats div{ text-align:center; }
+  .sl-card-stats .n{ font-family:'Space Grotesk'; font-size:15px; font-weight:700; }
+  .sl-card-stats .l{ font-size:10px; color:var(--text-muted); }
+  .sl-card-actions{ display:flex; gap:6px; flex-shrink:0; }
+  .sl-icon-btn{
+    width:32px; height:32px; border-radius:8px; background:var(--card-2); border:1px solid var(--border);
+    display:flex; align-items:center; justify-content:center; cursor:pointer; color:var(--text-muted);
+  }
+  .sl-icon-btn:hover{ color:var(--text); border-color:rgba(255,255,255,0.2); }
+  .sl-icon-btn.danger:hover{ color:#f87171; border-color:rgba(239,68,68,0.3); }
+
+  .sl-form-grid{ display:grid; grid-template-columns:1fr 1fr; gap:18px; align-items:start; }
+  .sl-cover-upload{
+    display:flex; align-items:center; gap:14px;
+    background:var(--card-2); border:1px dashed var(--border); border-radius:12px;
+    padding:14px; margin-bottom:18px; cursor:pointer;
+  }
+  .sl-cover-preview{
+    width:56px; height:56px; border-radius:10px; flex-shrink:0; object-fit:cover;
+    background:rgba(255,255,255,0.04); border:1px solid var(--border);
+    display:flex; align-items:center; justify-content:center; color:var(--text-muted);
+  }
+  .sl-slug-box{
+    display:flex; align-items:center;
+    background:var(--card-2); border:1px solid var(--border); border-radius:10px;
+    padding:0 4px 0 14px; height:46px;
+  }
+  .sl-slug-box span{ font-size:13px; color:var(--text-muted); white-space:nowrap; }
+  .sl-slug-box input{
+    flex:1; background:none; border:none; color:var(--text); font-size:14px; font-family:inherit;
+    padding:0 8px; height:100%;
+  }
+  .sl-slug-box input:focus{ outline:none; }
+
+  .sl-platform-field{ display:flex; align-items:center; gap:10px; margin-bottom:10px; }
+  .sl-selector-grid{ display:grid; grid-template-columns:repeat(5,1fr); gap:8px; }
+  .sl-selector-item{
+    display:flex; flex-direction:column; align-items:center; gap:6px;
+    padding:12px 4px; border-radius:12px; border:1px solid var(--border); background:var(--card-2);
+    cursor:pointer; transition:all .15s; position:relative;
+  }
+  .sl-selector-item:hover{ border-color:rgba(255,255,255,0.25); }
+  .sl-selector-item.selected{ border-color:var(--pink); background:rgba(255,45,95,0.08); }
+  .sl-selector-item.disabled{ opacity:0.35; cursor:default; pointer-events:none; }
+  .sl-selector-item .ic{
+    width:30px; height:30px; border-radius:9px; display:flex; align-items:center; justify-content:center;
+  }
+  .sl-selector-item .lbl{ font-size:10px; color:var(--text-muted); text-align:center; line-height:1.2; }
+  .sl-selector-item.selected .lbl{ color:var(--text); }
+  .sl-selector-item .check{
+    position:absolute; top:4px; right:4px; width:14px; height:14px; border-radius:50%;
+    background:var(--pink); display:none; align-items:center; justify-content:center; font-size:8px; color:#fff;
+  }
+  .sl-selector-item.selected .check{ display:flex; }
+  .sl-selected-field{ display:flex; align-items:center; gap:10px; margin-bottom:10px; }
+  .sl-selected-field .ic{ width:32px; height:32px; border-radius:8px; flex-shrink:0; display:flex; align-items:center; justify-content:center; }
+  .sl-selected-field input{
+    flex:1; background:var(--card-2); border:1px solid var(--border); border-radius:9px;
+    padding:0 12px; height:42px; color:var(--text); font-size:13.5px; font-family:inherit;
+  }
+  .sl-selected-field input:focus{ outline:2px solid var(--pink); outline-offset:1px; }
+  .sl-plat-ic{
+    width:32px; height:32px; border-radius:8px; flex-shrink:0;
+    display:flex; align-items:center; justify-content:center;
+    font-size:11px; font-weight:700; font-family:'Space Grotesk';
+  }
+  .sl-platform-field input{
+    flex:1; background:var(--card-2); border:1px solid var(--border); border-radius:9px;
+    padding:0 12px; height:42px; color:var(--text); font-size:13.5px; font-family:inherit;
+  }
+  .sl-platform-field input:focus{ outline:2px solid var(--pink); outline-offset:1px; }
+
+  .sl-form-actions{ display:flex; gap:10px; justify-content:flex-end; margin-top:20px; }
+  .sl-form-actions .btn-outline, .sl-form-actions .btn-primary{ padding:11px 22px; }
+
+  .sl-detail-head{ display:flex; align-items:center; gap:16px; }
+  .sl-detail-cover{ width:64px; height:64px; border-radius:12px; object-fit:cover; flex-shrink:0; background:var(--card-2); }
+  .sl-detail-link{ font-size:12.5px; color:#ff5f85; }
+
+  .sl-bar-row{ display:flex; align-items:center; gap:10px; font-size:13px; margin-bottom:10px; }
+  .sl-bar-row .lbl{ width:110px; flex-shrink:0; color:#c9c4d9; }
+  .sl-bar-track{ flex:1; height:8px; border-radius:100px; background:var(--card-2); overflow:hidden; }
+  .sl-bar-fill{ height:100%; background:linear-gradient(90deg, var(--pink), var(--orange)); border-radius:100px; }
+  .sl-bar-row .val{ width:34px; text-align:right; flex-shrink:0; font-family:'Space Grotesk'; font-weight:700; font-size:12.5px; }
+
+  .sl-access-item{ display:flex; justify-content:space-between; font-size:12.5px; color:#c9c4d9; padding:7px 0; border-bottom:1px solid var(--border); }
+  .sl-access-item:last-child{ border-bottom:none; }
+  .sl-access-item span{ color:var(--text-muted); }
+
+  @media (max-width: 700px){
+    .sl-form-grid{ grid-template-columns:1fr; }
+    .sl-card{ flex-wrap:wrap; }
+    .sl-card-stats{ order:3; width:100%; justify-content:flex-start; margin-top:8px; }
+  }
+
+  @keyframes planSpin{ to{ transform:rotate(360deg); } }
+  .plan-gen-item.active{ color:var(--text); }
+  .plan-gen-item.active .ic{ border-color:var(--pink); }
+  .plan-gen-item.done{ color:#c9c4d9; }
+  .plan-gen-item.done .ic{ background:rgba(34,197,94,0.15); border-color:rgba(34,197,94,0.4); }
+
+  @media (max-width: 900px){
+    .sidebar{
+      position:fixed; left:0; top:0; height:100vh; z-index:100;
+      transform:translateX(-100%); transition:transform .3s ease;
+      box-shadow:20px 0 60px rgba(0,0,0,0.5);
+    }
+    .sidebar.open{ transform:translateX(0); }
+    .sidebar-overlay{
+      display:none; position:fixed; inset:0; background:rgba(0,0,0,0.6); z-index:99;
+    }
+    .sidebar-overlay.open{ display:block; }
+    .hamburger{ display:flex; }
+    .cards-row{ grid-template-columns:1fr; }
+    .stats-grid{ grid-template-columns:1fr 1fr; }
+    .content{ padding:20px 16px 60px; }
+  }
+
+  /* ===== Auth (login / cadastro) ===== */
+  #authView{
+    min-height:100vh; display:flex; align-items:center; justify-content:center;
+    padding:32px 16px; position:relative; z-index:1;
+  }
+  .auth-panel{
+    width:100%; max-width:420px;
+    background:var(--card); border:1px solid var(--border); border-radius:20px;
+    padding:36px; box-shadow:0 30px 80px rgba(0,0,0,0.5);
+  }
+  .auth-logo{
+    display:flex; align-items:center; justify-content:center; gap:2px;
+    font-family:'Baloo 2',sans-serif; font-weight:800; font-size:22px; margin-bottom:8px;
+  }
+  .auth-logo .v{
+    width:22px; height:22px; border-radius:6px;
+    background:linear-gradient(135deg, var(--pink), var(--orange));
+    display:inline-flex; align-items:center; justify-content:center; font-size:12px; margin-right:6px;
+  }
+  .auth-sub{ text-align:center; color:var(--text-muted); font-size:13.5px; margin-bottom:26px; }
+  .auth-field{ margin-bottom:14px; }
+  .field{ margin-bottom:14px; }
+  .row-2{ display:grid; grid-template-columns:1fr 1fr; gap:12px; }
+  .field label{ display:block; font-size:12.5px; color:var(--text-muted); margin-bottom:6px; }
+  .field input{
+    width:100%; background:var(--card-2); border:1px solid var(--border); border-radius:10px;
+    padding:0 14px; height:46px; color:var(--text); font-size:14px; font-family:inherit;
+  }
+  .field input:focus{ outline:2px solid var(--pink); outline-offset:1px; }
+  .auth-field label{ display:block; font-size:12.5px; color:var(--text-muted); margin-bottom:6px; }
+  .auth-field input{
+    width:100%; background:var(--card-2); border:1px solid var(--border); border-radius:10px;
+    padding:0 14px; height:46px; color:var(--text); font-size:14px; font-family:inherit;
+  }
+  .auth-field input:focus{ outline:2px solid var(--pink); outline-offset:1px; }
+  .pass-wrap{ position:relative; }
+  .pass-wrap input{ padding-right:44px; }
+  .pass-toggle{
+    position:absolute; right:12px; top:50%; transform:translateY(-50%);
+    background:none; border:none; cursor:pointer; color:var(--text-muted);
+    display:flex; align-items:center; justify-content:center; padding:4px;
+  }
+  .pass-toggle:hover{ color:var(--text); }
+  .auth-terms{
+    display:flex; align-items:flex-start; gap:9px; margin-bottom:16px;
+    font-size:12.5px; color:var(--text-muted); line-height:1.5; cursor:pointer;
+  }
+  .auth-terms input{ margin-top:2px; accent-color:var(--pink); width:15px; height:15px; flex-shrink:0; cursor:pointer; }
+  .auth-terms a{ color:#ff5f85; text-decoration:underline; }
+  .auth-error{ display:none; font-size:12.5px; color:#f87171; margin-bottom:12px; }
+  .auth-btn{
+    width:100%; height:48px; border-radius:11px; border:none;
+    background:linear-gradient(90deg, var(--pink), var(--orange)); color:#fff;
+    font-size:14.5px; font-weight:600; cursor:pointer; font-family:inherit;
+    margin-top:6px;
+  }
+  .auth-switch{ text-align:center; font-size:13px; color:var(--text-muted); margin-top:20px; }
+  .auth-switch a{ color:#ff5f85; text-decoration:none; font-weight:600; cursor:pointer; }
+  .auth-divider{ display:flex; align-items:center; gap:10px; margin:20px 0; color:var(--text-muted); font-size:12px; }
+  .auth-divider::before, .auth-divider::after{ content:''; flex:1; height:1px; background:var(--border); }
+  .auth-social{
+    display:flex; align-items:center; justify-content:center; gap:8px;
+    width:100%; height:46px; border-radius:10px; border:1px solid var(--border); background:var(--card-2);
+    color:var(--text); font-size:13.5px; font-weight:600; cursor:pointer; font-family:inherit;
+  }
+</style>
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.min.js"></script>
+</head>
+<body>
+
+<div class="glow glow-1"></div>
+
+<!-- ============ AUTH (LOGIN / CADASTRO) ============ -->
+<div id="authView">
+  <div class="auth-panel">
+    <div class="auth-logo"><span class="v">V</span>iraHits</div>
+
+    <!-- LOGIN -->
+    <div id="loginScreen">
+      <p class="auth-sub">Entra na sua conta pra continuar</p>
+      <div class="auth-field"><label>E-mail</label><input type="email" id="loginEmail" placeholder="seu@email.com"></div>
+      <div class="auth-field">
+        <label>Senha</label>
+        <div class="pass-wrap">
+          <input type="password" id="loginPass" placeholder="••••••••">
+          <button type="button" class="pass-toggle" data-target="loginPass">
+            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/></svg>
+          </button>
+        </div>
+      </div>
+      <div class="auth-error" id="loginError">Preenche e-mail e senha pra continuar.</div>
+      <button class="auth-btn" id="loginBtn">Entrar</button>
+      <div class="auth-divider">ou</div>
+      <button class="auth-social">🔵 Continuar com Google</button>
+      <p class="auth-switch">Ainda não tem conta? <a id="goToSignup">Criar conta</a></p>
+      <p style="text-align:center; margin-top:14px;"><span id="devPreviewLink" style="font-size:11.5px; color:var(--text-muted); cursor:pointer; text-decoration:underline;">Ver painel sem login (teste visual)</span></p>
+    </div>
+
+    <!-- CADASTRO -->
+    <div id="signupScreen" style="display:none;">
+      <p class="auth-sub">Cria sua conta gratuita no ViraHits</p>
+      <div class="auth-field"><label>Nome artístico</label><input type="text" id="signupName" placeholder="Seu nome ou nome artístico"></div>
+      <div class="auth-field"><label>E-mail</label><input type="email" id="signupEmail" placeholder="seu@email.com"></div>
+      <div class="auth-field"><label>WhatsApp</label><input type="tel" id="signupPhone" placeholder="(00) 00000-0000"></div>
+      <div class="auth-field">
+        <label>Senha</label>
+        <div class="pass-wrap">
+          <input type="password" id="signupPass" placeholder="Crie uma senha">
+          <button type="button" class="pass-toggle" data-target="signupPass">
+            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/></svg>
+          </button>
+        </div>
+      </div>
+      <label class="auth-terms">
+        <input type="checkbox" id="signupTerms">
+        <span>Li e concordo com os <a href="termos.html" target="_blank">Termos de Uso</a> e a <a href="termos.html#privacidade" target="_blank">Política de Privacidade</a></span>
+      </label>
+      <div class="auth-error" id="signupError">Preenche todos os campos e aceita os termos pra continuar.</div>
+      <button class="auth-btn" id="signupBtn">Criar conta</button>
+      <p class="auth-switch">Já tem conta? <a id="goToLogin">Entrar</a></p>
+    </div>
+  </div>
+</div>
+
+<!-- ============ PAINEL ============ -->
+<div class="layout" id="dashboardView" style="display:none;">
+  <!-- SIDEBAR -->
+  <div class="sidebar-overlay" id="sidebarOverlay"></div>
+  <aside class="sidebar" id="sidebar">
+    <div class="sidebar-logo"><span class="v">V</span>iraHits</div>
+    <nav class="sidebar-nav">
+      <a class="nav-item active"><svg class="nav-ic" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 12l9-9 9 9"/><path d="M5 10v10a1 1 0 0 0 1 1h4v-6h4v6h4a1 1 0 0 0 1-1V10"/></svg>Visão Geral</a>
+      <a class="nav-item"><svg class="nav-ic" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M9 2h6a2 2 0 0 1 2 2v16a2 2 0 0 1-2 2H9a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2z"/><line x1="9" y1="7" x2="15" y2="7"/><line x1="9" y1="11" x2="15" y2="11"/><line x1="9" y1="15" x2="13" y2="15"/></svg>Meus Planos</a>
+      <a class="nav-item"><svg class="nav-ic" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="9"/><line x1="12" y1="8" x2="12" y2="16"/><line x1="8" y1="12" x2="16" y2="12"/></svg>Novo Plano</a>
+      <a class="nav-item"><svg class="nav-ic" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 11.5a8.38 8.38 0 0 1-.9 3.8 8.5 8.5 0 0 1-7.6 4.7 8.38 8.38 0 0 1-3.8-.9L3 21l1.9-5.7a8.38 8.38 0 0 1-.9-3.8 8.5 8.5 0 0 1 4.7-7.6 8.38 8.38 0 0 1 3.8-.9h.5a8.48 8.48 0 0 1 8 8v.5z"/></svg>Estrategista IA</a>
+      <a class="nav-item"><svg class="nav-ic" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M10 13a5 5 0 0 0 7.54.54l3-3a5 5 0 0 0-7.07-7.07l-1.72 1.71"/><path d="M14 11a5 5 0 0 0-7.54-.54l-3 3a5 5 0 0 0 7.07 7.07l1.71-1.71"/></svg>Smart Links</a>
+      <a class="nav-item"><svg class="nav-ic" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="13" r="8"/><path d="M12 9v4l2.5 2.5"/><path d="M9 2h6"/><path d="M4.5 4.5l1.5 1.5"/></svg>Pré-save</a>
+      <a class="nav-item"><svg class="nav-ic" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="18" y1="20" x2="18" y2="10"/><line x1="12" y1="20" x2="12" y2="4"/><line x1="6" y1="20" x2="6" y2="14"/></svg>Performance</a>
+      <a class="nav-item"><svg class="nav-ic" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21l7.78-7.55 1.06-1.06a5.5 5.5 0 0 0 0-7.78z"/></svg>Indique e Ganhe <span class="badge-new">NOVO</span></a>
+      <a class="nav-item"><svg class="nav-ic" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="1" y="4" width="22" height="16" rx="2"/><line x1="1" y1="10" x2="23" y2="10"/></svg>Assinatura</a>
+      <a class="nav-item"><svg class="nav-ic" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 1 1-2.83 2.83l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-4 0v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 1 1-2.83-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1 0-4h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 1 1 2.83-2.83l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 4 0v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 1 1 2.83 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 0 4h-.09a1.65 1.65 0 0 0-1.51 1z"/></svg>Minha Conta</a>
+    </nav>
+    <div class="sidebar-footer">
+      <a class="nav-item"><svg class="nav-ic" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"/><polyline points="16 17 21 12 16 7"/><line x1="21" y1="12" x2="9" y2="12"/></svg>Sair</a>
+    </div>
+  </aside>
+
+  <!-- MAIN -->
+  <div class="main">
+    <div class="topbar">
+      <div class="topbar-user">
+        <button class="hamburger" id="hamburgerBtn">☰</button>
+        <div class="avatar">MC</div>
+        <div>
+          <div class="name">MC Exemplo</div>
+          <div class="plan">Plano Gratuito</div>
+        </div>
+      </div>
+      <div class="topbar-right">
+        <button class="btn-upgrade">Fazer Upgrade</button>
+        <div class="icon-btn">🔔<span class="dot-alert"></span></div>
+        <div class="icon-btn">👤</div>
+      </div>
+    </div>
+
+    <div class="content">
+      <div id="view-overview">
+      <h1 class="page-title" id="greetingTitle">Olá 👋</h1>
+      <p class="page-sub">Aqui está um resumo da sua conta ViraHits.</p>
+
+      <div class="cards-row">
+        <div class="card">
+          <div class="card-label"><span class="ic">🎟️</span>Créditos disponíveis</div>
+          <div class="credits-value">2</div>
+          <div class="credits-sub">Planos gratuitos restantes este mês</div>
+          <button class="btn-outline">Ver planos pagos</button>
+        </div>
+        <div class="card cta-card">
+          <div class="card-label"><span class="ic">⚡</span>Novo lançamento</div>
+          <h2>Gere um plano pra sua próxima música</h2>
+          <p>Cole o link, preenche alguns dados e receba um plano completo de divulgação em minutos.</p>
+          <button class="btn-primary" id="btnGerarPlanoOverview">➕ Gerar novo plano</button>
+        </div>
+      </div>
+
+      <div class="section-title">Últimos planos gerados</div>
+      <div class="empty-box">
+        Você ainda não gerou nenhum plano.<br>
+        <span style="opacity:0.7;">Clique em "Gerar novo plano" pra começar.</span>
+      </div>
+
+      <div class="section-title">Desempenho geral</div>
+      <div class="filters-row">
+        <select class="filter-select"><option>Todos os planos</option></select>
+        <select class="filter-select"><option>Todas as plataformas</option></select>
+        <select class="filter-select"><option>Últimos 28 dias</option></select>
+      </div>
+      <div class="stats-grid">
+        <div class="stat-box"><div class="n">0</div><div class="l">Planos gerados</div></div>
+        <div class="stat-box"><div class="n">0</div><div class="l">Score médio</div></div>
+        <div class="stat-box"><div class="n">0</div><div class="l">Mensagens à IA</div></div>
+        <div class="stat-box"><div class="n">0</div><div class="l">Campanhas ativas</div></div>
+      </div>
+      </div>
+
+      <!-- ===== SMART LINKS: LISTA ===== -->
+      <div id="view-smartlinks" style="display:none;">
+        <div class="sl-header">
+          <div>
+            <h1 class="page-title">Smart Links</h1>
+            <p class="page-sub">Um link só com todas as plataformas da sua música.</p>
+          </div>
+          <button class="btn-primary" id="btnNovoSmartLink">+ Novo Smart Link</button>
+        </div>
+
+        <div id="slLimitNotice" style="display:none; background:rgba(255,45,95,0.08); border:1px solid rgba(255,45,95,0.25); border-radius:10px; padding:12px 16px; font-size:13px; color:#ff8fae; margin-bottom:16px;">
+          Seu plano gratuito permite <strong>1 Smart Link ativo</strong>. Edite o que já existe, ou exclua pra criar outro.
+        </div>
+
+        <div class="sl-search-row">
+          <div class="sl-search">
+            <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>
+            <input type="text" id="slSearchInput" placeholder="Buscar por música ou artista...">
+          </div>
+        </div>
+
+        <div id="slList"></div>
+      </div>
+
+      <!-- ===== SMART LINKS: FORMULÁRIO (criar/editar) ===== -->
+      <div id="view-smartlink-form" style="display:none;">
+        <button class="dash-back" id="slFormBack" style="margin-bottom:6px;">← Voltar pra Smart Links</button>
+        <h1 class="page-title" id="slFormTitle">Novo Smart Link</h1>
+        <p class="page-sub">Preencha os dados da música e as plataformas disponíveis.</p>
+
+        <div class="sl-form-grid">
+          <div class="card">
+            <h3 style="margin-bottom:18px;">Informações da música</h3>
+
+            <div class="sl-cover-upload" id="slCoverUpload">
+              <div class="sl-cover-preview" id="slCoverPreview">
+                <svg width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="3" width="18" height="18" rx="2"/><circle cx="8.5" cy="8.5" r="1.5"/><path d="M21 15l-5-5L5 21"/></svg>
+              </div>
+              <div>
+                <button type="button" class="btn-outline" id="slCoverBtn">Enviar capa</button>
+                <div style="font-size:11.5px; color:var(--text-muted); margin-top:6px;">JPG ou PNG, quadrada, ideal 1000×1000px, até 5MB</div>
+                <div style="font-size:11.5px; color:#f87171; margin-top:4px; display:none;" id="slCoverError"></div>
+              </div>
+              <input type="file" id="slCoverInput" accept="image/jpeg,image/png" style="display:none;">
+            </div>
+
+            <div class="field"><label>Nome da música</label><input type="text" id="slTrackName" placeholder="Ex: Sua Faixa"></div>
+            <div class="field"><label>Nome do artista</label><input type="text" id="slArtistName" placeholder="Ex: MC Exemplo"></div>
+
+            <div class="field">
+              <label>Slug personalizado</label>
+              <div class="sl-slug-box">
+                <span>virahits.com.br/s/</span>
+                <input type="text" id="slSlug" placeholder="sua-faixa">
+              </div>
+            </div>
+          </div>
+
+          <div class="card">
+            <h3 style="margin-bottom:6px;">Ambientes</h3>
+            <p style="font-size:12.5px; color:var(--text-muted); margin-bottom:14px;">Escolha até <strong id="slMaxLabel">5</strong> — lojas de música ou redes sociais. <span id="slSelCount">0/5 selecionados</span></p>
+
+            <div class="sl-selector-grid" id="slSelectorGrid"></div>
+
+            <div id="slSelectedInputs" style="margin-top:18px;"></div>
+          </div>
+        </div>
+
+        <div class="sl-form-actions">
+          <button class="btn-outline" id="slCancelBtn">Cancelar</button>
+          <button class="btn-primary" id="slSaveBtn">Salvar Smart Link</button>
+        </div>
+      </div>
+
+      <!-- ===== SMART LINKS: ANALYTICS DE UM LINK ===== -->
+      <div id="view-smartlink-detail" style="display:none;">
+        <button class="dash-back" id="slDetailBack" style="margin-bottom:6px;">← Voltar pra Smart Links</button>
+        <div class="sl-detail-head">
+          <img id="slDetailCover" class="sl-detail-cover" src="" alt="">
+          <div>
+            <h1 class="page-title" id="slDetailTitle" style="margin-bottom:2px;"></h1>
+            <p class="page-sub" id="slDetailArtist" style="margin-bottom:6px;"></p>
+            <div class="sl-detail-link" id="slDetailLink"></div>
+          </div>
+        </div>
+
+        <div class="stats-grid" style="margin:20px 0;">
+          <div class="stat-box"><div class="n" id="slStatViews">0</div><div class="l">Total de acessos</div></div>
+          <div class="stat-box"><div class="n" id="slStatClicks">0</div><div class="l">Total de cliques</div></div>
+          <div class="stat-box"><div class="n" id="slStatTop">-</div><div class="l">Plataforma mais usada</div></div>
+          <div class="stat-box"><div class="n" id="slStatCtr">0%</div><div class="l">Taxa de clique</div></div>
+        </div>
+
+        <div class="dash-grid">
+          <div class="card list-card">
+            <h3>Cliques por plataforma</h3>
+            <ul id="slPlatformBars"></ul>
+          </div>
+          <div class="card list-card">
+            <h3>Últimos acessos</h3>
+            <ul id="slRecentAccess"></ul>
+          </div>
+        </div>
+      </div>
+
+      <!-- ===== SMART LINKS: LINK GERADO ===== -->
+      <div id="view-smartlink-success" style="display:none;">
+        <div class="card" style="max-width:480px; margin:40px auto; text-align:center; padding:36px 28px;">
+          <div style="width:56px; height:56px; border-radius:50%; background:rgba(34,197,94,0.12); border:1px solid rgba(34,197,94,0.3); display:flex; align-items:center; justify-content:center; margin:0 auto 18px; font-size:26px; color:#4ade80;">✓</div>
+          <h2 style="font-size:19px; margin-bottom:8px;">Smart Link gerado!</h2>
+          <p style="font-size:13.5px; color:var(--text-muted); margin-bottom:20px;">Compartilhe esse link em qualquer lugar — ele mostra todas as plataformas da música.</p>
+          <div style="display:flex; align-items:center; gap:8px; background:var(--card-2); border:1px solid var(--border); border-radius:10px; padding:0 6px 0 14px; height:46px; margin-bottom:18px;">
+            <span id="slSuccessLink" style="flex:1; font-size:12.5px; color:#ff5f85; text-align:left; overflow:hidden; text-overflow:ellipsis; white-space:nowrap;"></span>
+            <button class="btn-outline" id="slCopySuccessBtn" style="flex-shrink:0; height:36px; padding:0 14px;">Copiar</button>
+          </div>
+          <div style="display:flex; gap:10px;">
+            <button class="btn-outline" id="slBackFromSuccess" style="flex:1;">Ver meus Smart Links</button>
+            <a class="btn-primary" id="slOpenSuccessLink" target="_blank" style="flex:1; text-decoration:none; display:flex; align-items:center; justify-content:center;">Abrir link →</a>
+          </div>
+        </div>
+      </div>
+
+      <!-- ===== PRÉ-SAVE: LISTA ===== -->
+      <div id="view-presaves" style="display:none;">
+        <div class="sl-header">
+          <div>
+            <h1 class="page-title">Pré-save</h1>
+            <p class="page-sub">Contagem regressiva até o lançamento, com links de todas as plataformas.</p>
+          </div>
+          <button class="btn-primary" id="btnNovoPresave">+ Nova campanha</button>
+        </div>
+        <div id="psLimitNotice" style="display:none; background:rgba(255,45,95,0.08); border:1px solid rgba(255,45,95,0.25); border-radius:10px; padding:12px 16px; font-size:13px; color:#ff8fae; margin-bottom:16px;">
+          Seu plano gratuito permite <strong>1 campanha de Pré-save ativa</strong>. Edite a existente, ou exclua pra criar outra.
+        </div>
+        <div id="psList"></div>
+      </div>
+
+      <!-- ===== PRÉ-SAVE: FORMULÁRIO ===== -->
+      <div id="view-presave-form" style="display:none;">
+        <button class="dash-back" id="psFormBack" style="margin-bottom:6px;">← Voltar pro Pré-save</button>
+        <h1 class="page-title" id="psFormTitle">Nova campanha de Pré-save</h1>
+        <p class="page-sub">Preenche os dados da música e a data de lançamento.</p>
+
+        <div class="sl-form-grid">
+          <div class="card">
+            <h3 style="margin-bottom:18px;">Informações da música</h3>
+
+            <div class="sl-cover-upload" id="psCoverUpload">
+              <div class="sl-cover-preview" id="psCoverPreview">
+                <svg width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="3" width="18" height="18" rx="2"/><circle cx="8.5" cy="8.5" r="1.5"/><path d="M21 15l-5-5L5 21"/></svg>
+              </div>
+              <div>
+                <button type="button" class="btn-outline" id="psCoverBtn">Enviar capa</button>
+                <div style="font-size:11.5px; color:var(--text-muted); margin-top:6px;">JPG ou PNG, quadrada, ideal 1000×1000px, até 5MB</div>
+                <div style="font-size:11.5px; color:#f87171; margin-top:4px; display:none;" id="psCoverError"></div>
+              </div>
+              <input type="file" id="psCoverInput" accept="image/jpeg,image/png" style="display:none;">
+            </div>
+
+            <div class="field"><label>Nome da música ou álbum</label><input type="text" id="psTrackName" placeholder="Ex: Sua Faixa"></div>
+            <div class="field"><label>Nome do artista</label><input type="text" id="psArtistName" placeholder="Ex: MC Exemplo"></div>
+
+            <div class="row-2">
+              <div class="field">
+                <label>Data do lançamento</label>
+                <input type="date" id="psReleaseDateOnly">
+              </div>
+              <div class="field">
+                <label>Hora do lançamento</label>
+                <input type="time" id="psReleaseTimeOnly">
+              </div>
+            </div>
+
+            <div class="field">
+              <label>Slug personalizado</label>
+              <div class="sl-slug-box">
+                <span>virahits.com.br/p/</span>
+                <input type="text" id="psSlug" placeholder="sua-faixa">
+              </div>
+            </div>
+          </div>
+
+          <div class="card">
+            <h3 style="margin-bottom:6px;">Ambientes</h3>
+            <p style="font-size:12.5px; color:var(--text-muted); margin-bottom:14px;">Escolha até <strong>5</strong> — lojas de música ou redes sociais. <span id="psSelCount">0/5 selecionados</span></p>
+            <div class="sl-selector-grid" id="psSelectorGrid"></div>
+            <div id="psSelectedInputs" style="margin-top:18px;"></div>
+          </div>
+        </div>
+
+        <div class="sl-form-actions">
+          <button class="btn-outline" id="psCancelBtn">Cancelar</button>
+          <button class="btn-primary" id="psSaveBtn">Salvar campanha</button>
+        </div>
+      </div>
+
+      <!-- ===== PRÉ-SAVE: DETALHE/ANALYTICS ===== -->
+      <div id="view-presave-detail" style="display:none;">
+        <button class="dash-back" id="psDetailBack" style="margin-bottom:6px;">← Voltar pro Pré-save</button>
+        <div class="sl-detail-head">
+          <img id="psDetailCover" class="sl-detail-cover" src="" alt="">
+          <div>
+            <h1 class="page-title" id="psDetailTitle" style="margin-bottom:2px;"></h1>
+            <p class="page-sub" id="psDetailArtist" style="margin-bottom:6px;"></p>
+            <div class="sl-detail-link" id="psDetailLink"></div>
+          </div>
+        </div>
+        <div class="stats-grid" style="margin:20px 0;">
+          <div class="stat-box"><div class="n" id="psStatViews">0</div><div class="l">Total de acessos</div></div>
+          <div class="stat-box"><div class="n" id="psStatClicks">0</div><div class="l">Total de cliques</div></div>
+          <div class="stat-box"><div class="n" id="psStatTop">-</div><div class="l">Plataforma mais usada</div></div>
+          <div class="stat-box"><div class="n" id="psStatCtr">0%</div><div class="l">Taxa de clique</div></div>
+        </div>
+        <div class="dash-grid">
+          <div class="card list-card">
+            <h3>Cliques por plataforma</h3>
+            <ul id="psPlatformBars"></ul>
+          </div>
+          <div class="card list-card">
+            <h3>Últimos acessos</h3>
+            <ul id="psRecentAccess"></ul>
+          </div>
+        </div>
+      </div>
+
+      <!-- ===== PRÉ-SAVE: LINK GERADO ===== -->
+      <div id="view-presave-success" style="display:none;">
+        <div class="card" style="max-width:480px; margin:40px auto; text-align:center; padding:36px 28px;">
+          <div style="width:56px; height:56px; border-radius:50%; background:rgba(34,197,94,0.12); border:1px solid rgba(34,197,94,0.3); display:flex; align-items:center; justify-content:center; margin:0 auto 18px; font-size:26px; color:#4ade80;">✓</div>
+          <h2 style="font-size:19px; margin-bottom:8px;">Campanha de Pré-save criada!</h2>
+          <p style="font-size:13.5px; color:var(--text-muted); margin-bottom:20px;">Compartilhe esse link — ele mostra a contagem regressiva até o lançamento.</p>
+          <div style="display:flex; align-items:center; gap:8px; background:var(--card-2); border:1px solid var(--border); border-radius:10px; padding:0 6px 0 14px; height:46px; margin-bottom:18px;">
+            <span id="psSuccessLink" style="flex:1; font-size:12.5px; color:#ff5f85; text-align:left; overflow:hidden; text-overflow:ellipsis; white-space:nowrap;"></span>
+            <button class="btn-outline" id="psCopySuccessBtn" style="flex-shrink:0; height:36px; padding:0 14px;">Copiar</button>
+          </div>
+          <div style="display:flex; gap:10px;">
+            <button class="btn-outline" id="psBackFromSuccess" style="flex:1;">Ver Pré-save</button>
+            <a class="btn-primary" id="psOpenSuccessLink" target="_blank" style="flex:1; text-decoration:none; display:flex; align-items:center; justify-content:center;">Abrir link →</a>
+          </div>
+        </div>
+      </div>
+
+      <!-- ===== MINHA CONTA ===== -->
+      <div id="view-account" style="display:none;">
+        <h1 class="page-title">Minha Conta</h1>
+        <p class="page-sub">Gerencie seus dados pessoais e sua senha.</p>
+
+        <div class="card" style="max-width:520px; margin-bottom:20px;">
+          <div style="display:flex; align-items:center; gap:14px; margin-bottom:22px;">
+            <div class="avatar" id="accAvatarBig" style="width:56px; height:56px; font-size:19px;">MC</div>
+            <div>
+              <div style="font-weight:600; font-size:15px;" id="accNameDisplay">—</div>
+              <div style="font-size:12.5px; color:var(--text-muted);" id="accEmailDisplay">—</div>
+            </div>
+          </div>
+
+          <h3 style="font-size:13px; text-transform:uppercase; letter-spacing:0.04em; color:var(--text-muted); margin-bottom:14px;">Dados pessoais</h3>
+          <div class="field"><label>Nome</label><input type="text" id="accRealName"></div>
+          <div class="field"><label>Nome artístico <span style="color:#5f5a72;">(opcional)</span></label><input type="text" id="accName"></div>
+          <div class="field"><label>E-mail</label><input type="email" id="accEmail"></div>
+          <div class="field"><label>WhatsApp</label><input type="tel" id="accPhone"></div>
+          <div class="auth-error" id="accInfoError"></div>
+          <button class="btn-primary" id="accSaveInfoBtn" style="width:100%; height:44px; margin-top:6px;">Salvar alterações</button>
+        </div>
+
+        <div class="card" style="max-width:520px;">
+          <h3 style="font-size:13px; text-transform:uppercase; letter-spacing:0.04em; color:var(--text-muted); margin-bottom:14px;">Alterar senha</h3>
+          <div class="field">
+            <label>Nova senha</label>
+            <div class="pass-wrap">
+              <input type="password" id="accNewPass" placeholder="Mínimo 6 caracteres">
+              <button type="button" class="pass-toggle" data-target="accNewPass">
+                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/></svg>
+              </button>
+            </div>
+          </div>
+          <div class="field">
+            <label>Confirmar nova senha</label>
+            <div class="pass-wrap">
+              <input type="password" id="accConfirmPass" placeholder="Repita a senha">
+              <button type="button" class="pass-toggle" data-target="accConfirmPass">
+                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/></svg>
+              </button>
+            </div>
+          </div>
+          <div class="auth-error" id="accPassError"></div>
+          <div class="auth-error" id="accPassSuccess" style="color:#4ade80;"></div>
+          <button class="btn-outline" id="accSavePassBtn" style="width:100%; height:44px; margin-top:6px;">Alterar senha</button>
+        </div>
+      </div>
+
+      <!-- ===== ESTRATEGISTA IA ===== -->
+      <div id="view-strategist" style="display:none;">
+        <h1 class="page-title">Estrategista IA</h1>
+        <p class="page-sub">Tire dúvidas rápidas sobre marketing musical.</p>
+
+        <div class="card" style="max-width:640px; padding:0; overflow:hidden;">
+          <div style="display:flex; align-items:center; gap:10px; padding:16px 20px; border-bottom:1px solid var(--border);">
+            <div style="width:36px; height:36px; border-radius:50%; background:linear-gradient(135deg, var(--pink), var(--orange)); display:flex; align-items:center; justify-content:center; font-size:16px;">💬</div>
+            <div>
+              <div style="font-weight:600; font-size:14px;">Estrategista IA</div>
+              <div style="font-size:11.5px; color:#4ade80; display:flex; align-items:center; gap:5px;"><span style="width:6px; height:6px; border-radius:50%; background:#4ade80; display:inline-block;"></span>Online</div>
+            </div>
+          </div>
+
+          <div id="stChatBody" style="height:420px; overflow-y:auto; padding:18px 20px; display:flex; flex-direction:column; gap:12px;"></div>
+
+          <div style="padding:14px 18px; border-top:1px solid var(--border);">
+            <div style="display:flex; flex-wrap:wrap; gap:6px; margin-bottom:10px;" id="stQuickChips"></div>
+            <div style="display:flex; gap:8px;">
+              <input type="text" id="stChatInput" placeholder="Digite sua pergunta..." style="flex:1; background:var(--card-2); border:1px solid var(--border); border-radius:9px; padding:0 14px; height:44px; color:var(--text); font-size:13.5px; font-family:inherit;">
+              <button class="btn-primary" id="stChatSendBtn" style="padding:0 18px;">Enviar</button>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- ===== NOVO PLANO: FORMULÁRIO ===== -->
+      <div id="view-plan-form" style="display:none;">
+        <h1 class="page-title">Novo Plano</h1>
+        <p class="page-sub">Cole o link da música e conta um pouco sobre ela — a IA monta o plano completo.</p>
+
+        <div class="card" style="max-width:560px;">
+          <div class="field"><label>Link da música (Spotify, YouTube, etc.)</label><input type="text" id="planLink" placeholder="https://open.spotify.com/track/..."></div>
+          <div class="row-2">
+            <div class="field"><label>Nome do artista</label><input type="text" id="planArtist" placeholder="Ex: MC Exemplo"></div>
+            <div class="field"><label>Nome da música</label><input type="text" id="planTrack" placeholder="Ex: Sua Faixa"></div>
+          </div>
+          <div class="row-2">
+            <div class="field">
+              <label>Gênero musical</label>
+              <select id="planGenre"><option>Trap</option><option>Funk</option><option>Sertanejo</option><option>Pop</option><option>Gospel</option><option>MPB</option><option>Outro</option></select>
+            </div>
+            <div class="field">
+              <label>Objetivo principal</label>
+              <select id="planGoal"><option>Streams</option><option>Seguidores</option><option>Engajamento</option><option>Playlists</option></select>
+            </div>
+          </div>
+          <div class="field"><label>Artistas em que você se inspira <span style="color:var(--text-muted);">(opcional)</span></label><input type="text" id="planRefs" placeholder="Ex: Veigh, Teto, WIU"></div>
+          <div class="field">
+            <label>Orçamento disponível</label>
+            <div class="budget-grid" id="planBudgetGrid">
+              <div class="budget-opt selected" data-val="R$100">R$100</div>
+              <div class="budget-opt" data-val="R$300">R$300</div>
+              <div class="budget-opt" data-val="R$500">R$500</div>
+              <div class="budget-opt" data-val="R$1000">R$1000</div>
+            </div>
+          </div>
+          <div class="auth-error" id="planFormError"></div>
+          <button class="btn-primary" id="planGenerateBtn" style="width:100%; height:46px; margin-top:6px;">Gerar plano →</button>
+        </div>
+      </div>
+
+      <!-- ===== NOVO PLANO: GERANDO ===== -->
+      <div id="view-plan-generating" style="display:none;">
+        <div style="max-width:420px; margin:60px auto; text-align:center;">
+          <div style="width:70px; height:70px; margin:0 auto 22px; border-radius:50%; background:linear-gradient(135deg, var(--pink), var(--orange)); display:flex; align-items:center; justify-content:center; font-size:28px; animation:planSpin 2.2s linear infinite;">⚡</div>
+          <h2 style="font-size:19px; margin-bottom:20px;">Gerando seu plano personalizado</h2>
+          <div id="planGenList" style="display:flex; flex-direction:column; gap:10px; text-align:left;">
+            <div class="plan-gen-item" data-i="0" style="display:flex; align-items:center; gap:9px; font-size:13.5px; color:var(--text-muted);"><span class="ic" style="width:16px; height:16px; border-radius:50%; border:1.5px solid var(--border); flex-shrink:0;"></span>Buscando dados da música...</div>
+            <div class="plan-gen-item" data-i="1" style="display:flex; align-items:center; gap:9px; font-size:13.5px; color:var(--text-muted);"><span class="ic" style="width:16px; height:16px; border-radius:50%; border:1.5px solid var(--border); flex-shrink:0;"></span>Identificando público ideal...</div>
+            <div class="plan-gen-item" data-i="2" style="display:flex; align-items:center; gap:9px; font-size:13.5px; color:var(--text-muted);"><span class="ic" style="width:16px; height:16px; border-radius:50%; border:1.5px solid var(--border); flex-shrink:0;"></span>Montando estratégia de anúncios...</div>
+            <div class="plan-gen-item" data-i="3" style="display:flex; align-items:center; gap:9px; font-size:13.5px; color:var(--text-muted);"><span class="ic" style="width:16px; height:16px; border-radius:50%; border:1.5px solid var(--border); flex-shrink:0;"></span>Criando vídeos, copies e táticas...</div>
+          </div>
+          <div class="auth-error" id="planGenError" style="margin-top:20px; text-align:left;"></div>
+        </div>
+      </div>
+
+      <!-- ===== NOVO PLANO: RESULTADO ===== -->
+      <div id="view-plan-result" style="display:none;">
+        <button class="dash-back" id="planResultBack" style="margin-bottom:10px;">← Voltar</button>
+        <div id="planResultContent"></div>
+      </div>
+
+      <!-- ===== MEUS PLANOS ===== -->
+      <div id="view-my-plans" style="display:none;">
+        <div class="sl-header">
+          <div>
+            <h1 class="page-title">Meus Planos</h1>
+            <p class="page-sub">Todos os planos que você já gerou.</p>
+          </div>
+          <button class="btn-primary" id="btnNovoPlanoFromList">+ Novo Plano</button>
+        </div>
+        <div id="myPlansList"></div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<script>
+/**
+ * VIRAHITS — ESTRATEGISTA IA
+ * Motor conversacional sem IA generativa obrigatória.
+ *
+ * Recursos:
+ * - 30 módulos musicais
+ * - variações de perguntas, gírias e erros comuns
+ * - detecção por intenção + palavras-chave
+ * - memória de contexto
+ * - extração de streams, ouvintes, orçamento, datas e gênero
+ * - respostas variadas
+ * - perguntas de continuidade
+ * - fallback em níveis
+ * - proteção contra respostas inventadas
+ *
+ * Uso:
+ * const bot = new VirahitsEstrategista();
+ * console.log(bot.respond("como aumentar meus streams?"));
+ */
+
+class VirahitsEstrategista {
+  constructor(config = {}) {
+    this.config = {
+      maxHistory: config.maxHistory || 40,
+      confidenceThreshold: config.confidenceThreshold || 3,
+      ...config
+    };
+
+    this.context = this.emptyContext();
+    this.history = [];
+    this.lastResponseIndex = {};
+    this.modules = this.createModules();
+    this.aliases = this.createAliases();
+  }
+
+  emptyContext() {
+    return {
+      intent: null,
+      previousIntent: null,
+      topic: null,
+      artistName: null,
+      genre: null,
+      song: null,
+      platform: null,
+      objective: null,
+      problem: null,
+      streams: null,
+      monthlyListeners: null,
+      followers: null,
+      saves: null,
+      views: null,
+      budget: null,
+      dailyBudget: null,
+      releaseDate: null,
+      daysToRelease: null,
+      stage: null,
+      hasAds: null,
+      lastQuestion: null,
+      lastAnswer: null,
+      confidence: 0,
+      unknownCount: 0,
+      lastFollowUp: null
+    };
+  }
+
+  normalize(text) {
+    if (!text) return "";
+
+    let s = String(text)
+      .toLowerCase()
+      .normalize("NFD")
+      .replace(/[\u0300-\u036f]/g, "")
+      .replace(/[!?.,;:()[\]{}"'`]/g, " ")
+      .replace(/\s+/g, " ")
+      .trim();
+
+    // Correções frequentes de artistas
+    const corrections = {
+      "spotfy": "spotify",
+      "spotfy": "spotify",
+      "spotifi": "spotify",
+      "spotifyy": "spotify",
+      "insta": "instagram",
+      "ig": "instagram",
+      "tik tok": "tiktok",
+      "tt": "tiktok",
+      "yt": "youtube",
+      "pre save": "pre-save",
+      "presave": "pre-save",
+      "pre-save": "pre-save",
+      "strim": "streams",
+      "strins": "streams",
+      "strims": "streams",
+      "streamss": "streams",
+      "streaming": "streams",
+      "musicaa": "musica",
+      "lancamentoo": "lancamento",
+      "lancameto": "lancamento",
+      "anucio": "anuncio",
+      "anuncioo": "anuncio",
+      "anuncioss": "anuncios",
+      "divulgaçao": "divulgacao",
+      "seguidors": "seguidores",
+      "ouvinte": "ouvintes",
+      "flopou": "baixo desempenho",
+      "flopado": "baixo desempenho",
+      "flop": "baixo desempenho",
+      "bombou": "alto desempenho",
+      "estourou": "alto desempenho",
+      "ta": "esta",
+      "to": "estou",
+      "tô": "estou",
+      "pq": "porque",
+      "q": "que",
+      "vc": "voce",
+      "vcs": "voces",
+      "tb": "tambem",
+      "tbm": "tambem",
+      "n": "nao",
+      "blz": "beleza",
+      "vlw": "valeu",
+      "tmj": "tamo junto",
+      "mano": "",
+      "bro": "",
+      "irmao": "",
+      "irma": ""
+    };
+
+    Object.entries(corrections).forEach(([a, b]) => {
+      s = s.replace(new RegExp(`\\b${this.escapeRegExp(a)}\\b`, "g"), b);
+    });
+
+    return s.replace(/\s+/g, " ").trim();
+  }
+
+  escapeRegExp(value) {
+    return value.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
+  }
+
+  createAliases() {
+    return {
+      genres: [
+        "sertanejo", "funk", "trap", "rap", "hip hop", "pop", "rock",
+        "pagode", "samba", "mpb", "forro", "piseiro", "arrocha",
+        "gospel", "reggae", "r&b", "indie", "eletronica", "eletronico"
+      ],
+      platforms: [
+        "spotify", "instagram", "tiktok", "youtube", "facebook",
+        "deezer", "apple music", "amazon music", "kwai"
+      ],
+      stages: [
+        "comecando", "iniciante", "zero", "independente",
+        "ja tenho publico", "ja tenho ouvintes", "ja tenho audiencia"
+      ]
+    };
+  }
+
+  createModules() {
+    return {
+
+      greeting: {
+        label: "Saudação",
+        keywords: ["oi","ola","opa","salve","fala","eai","bom dia","boa tarde","boa noite","tudo certo"],
+        phrases: [
+          "oi","ola","ola tudo bem","oi tudo bem","bom dia","boa tarde","boa noite",
+          "e ai","eai","fala","fala ai","salve","opa","hello","hey","tudo certo",
+          "tudo bem","como voce esta","como esta"
+        ],
+        responses: [
+          "Fala! 👊 Tudo certo? Me conta o que está pegando no seu projeto musical.",
+          "Opa! Tudo certo por aí? Pode mandar sua dúvida sobre música, lançamento, divulgação ou carreira.",
+          "Fala! 🎵 Bora trabalhar esse projeto. O que você quer melhorar agora?",
+          "Oi! Tudo certo. Me conta o que você está tentando fazer com sua música."
+        ]
+      },
+
+      casual: {
+        label: "Conversa casual",
+        keywords: ["beleza","show","legal","massa","fechou","entendi","perfeito","top"],
+        phrases: [
+          "beleza","show","massa","legal","fechou","perfeito","top",
+          "entendi","saquei","faz sentido","boa","boa demais"
+        ],
+        responses: [
+          "Boa. 👊 Então vamos nessa.",
+          "Perfeito. Agora já temos um caminho.",
+          "Fechou. Vamos por partes pra não complicar.",
+          "Boa! Isso já ajuda bastante a montar o próximo passo."
+        ]
+      },
+
+      release: {
+        label: "Lançamento",
+        keywords: ["lancar","lancamento","single","ep","album","soltar","estreia","data"],
+        phrases: [
+          "como lancar minha musica","como fazer um lancamento","como fazer lancamento",
+          "vou lancar uma musica","quero lancar uma musica","vou soltar uma musica",
+          "quero soltar uma musica","quando devo lancar","qual o melhor dia para lancar",
+          "qual melhor dia para lancar","quando lancar minha musica",
+          "quanto tempo antes devo preparar","o que fazer antes do lancamento",
+          "como preparar um lancamento","como divulgar meu lancamento",
+          "como divulgar uma musica nova","minha musica esta pronta para lancar",
+          "devo lancar single","single ou ep","devo lancar um ep",
+          "quantas musicas devo lancar","quantas vezes devo lancar","lancar musica todo mes",
+          "melhor dia para soltar","estrategia de lancamento"
+        ],
+        responses: [
+          "Boa. Para lançamento eu gosto de pensar em três momentos: preparação, lançamento e sustentação. Você já tem uma data definida?",
+          "Dá pra montar uma estratégia legal para esse lançamento. Quanto tempo falta para você soltar a música?",
+          "Antes de escolher o dia, precisamos pensar no que acontece antes e depois. Você já tem áudio, capa e conteúdo prontos?",
+          "Se ainda está planejando, melhor ainda. Dá para preparar a divulgação antes da música sair. Já sabe a data?"
+        ]
+      },
+
+      presave: {
+        label: "Pré-save",
+        keywords: ["pre-save","pre","save","presave"],
+        phrases: [
+          "como fazer pre save","como criar pre save","como funciona pre save",
+          "o que e pre save","vale a pena fazer pre save","como divulgar pre save",
+          "quanto tempo fazer pre save","quando comecar pre save",
+          "como conseguir pre saves","quero fazer pre save","pre save funciona"
+        ],
+        responses: [
+          "O pré-save pode ser útil para preparar uma base antes do lançamento. O segredo é ele fazer parte da campanha, não ser a campanha inteira. Já tem a data?",
+          "Sim, dá para trabalhar pré-save. Você já sabe quando a música vai sair?",
+          "O pré-save tende a funcionar melhor quando existe uma comunicação antes do lançamento e um motivo para a pessoa querer ouvir a faixa."
+        ]
+      },
+
+      streams: {
+        label: "Streams",
+        keywords: ["streams","stream","ouvintes","crescer","crescimento","audiencia","plays"],
+        phrases: [
+          "como aumentar meus streams","como conseguir mais streams","quero mais streams",
+          "preciso aumentar meus streams","como ganhar streams","como ganhar mais streams",
+          "como conseguir ouvintes","como conseguir mais ouvintes","como aumentar ouvintes",
+          "como aumentar meus ouvintes","quero mais ouvintes","minha musica nao tem streams",
+          "minha musica esta com poucos streams","por que tenho poucos streams",
+          "porque tenho poucos streams","como sair do zero","como conseguir meus primeiros streams",
+          "como chegar em mil streams","como chegar em dez mil streams",
+          "como chegar em cem mil streams","como bater mil streams","como bater dez mil streams",
+          "como bater cem mil streams","como fazer minha musica crescer","quero crescer",
+          "minha musica nao cresce","como conseguir plays"
+        ],
+        responses: [
+          "Dá pra trabalhar isso. Mas antes de pensar só em aumentar os streams, quero entender de onde eles estão vindo hoje. Você já tem uma música rodando?",
+          "Sim, dá para buscar mais streams. Só não recomendo colocar dinheiro sem entender o que está funcionando. Quantos streams sua música tem hoje?",
+          "Boa. Para aumentar streams, normalmente precisamos trabalhar descoberta, conteúdo e conversão para ouvintes. Você está começando do zero ou já tem uma base?",
+          "Tem alguns caminhos para isso. Sua música já foi lançada ou você ainda vai lançar?"
+        ]
+      },
+
+      spotify: {
+        label: "Spotify",
+        keywords: ["spotify","playlist","playlists","editorial","algoritmo","save","saves","radar","discover","release radar"],
+        phrases: [
+          "como crescer no spotify","como aumentar ouvintes no spotify",
+          "como conseguir ouvintes no spotify","como entrar em playlists",
+          "como entrar em playlist","como entrar em playlist editorial",
+          "como conseguir playlist","como conseguir playlists","como aparecer no spotify",
+          "como aparecer no radar","como entrar no release radar",
+          "como entrar no discover weekly","como aparecer no discover weekly",
+          "como funciona o algoritmo do spotify","como funciona o algoritmo",
+          "como conseguir mais saves","como aumentar saves",
+          "como aumentar seguidores no spotify","como divulgar musica no spotify",
+          "spotify nao entrega","spotify nao recomenda"
+        ],
+        responses: [
+          "No Spotify, eu olharia principalmente para ouvintes, streams por ouvinte, saves e de onde as pessoas estão descobrindo a música.",
+          "Dá para trabalhar bastante coisa no Spotify. A estratégia muda dependendo do estágio. Quantos ouvintes mensais você tem hoje?",
+          "Playlist é só uma parte do jogo. Eu também olharia para saves, recorrência e comportamento dos ouvintes. Sua música já está recebendo tráfego?",
+          "Se o objetivo é crescer no Spotify, eu começaria entendendo seus números atuais. Quantos ouvintes mensais você tem?"
+        ]
+      },
+
+      playlists: {
+        label: "Playlists",
+        keywords: ["playlist","playlists","editorial","curadoria","curador"],
+        phrases: [
+          "como entrar em playlist","como entrar em playlists","como conseguir playlist",
+          "como conseguir playlists","como entrar em playlist editorial",
+          "como conseguir playlist editorial","como falar com curador",
+          "como mandar musica para curador","como entrar em playlist independente",
+          "playlist algoritmica","playlist editorial spotify"
+        ],
+        responses: [
+          "Playlist pode ajudar, mas eu não trataria playlist como o único caminho de crescimento. Você está buscando playlist editorial, independente ou algorítmica?",
+          "Dá para trabalhar playlists, mas o tipo importa. Você está falando das editoriais do Spotify ou de playlists de terceiros?",
+          "Antes de pensar só em playlist, eu olharia se a música está convertendo quem chega em ouvintes recorrentes. Você já tem dados de saves?"
+        ]
+      },
+
+      algorithm: {
+        label: "Algoritmo",
+        keywords: ["algoritmo","recomendacao","recomendacoes","radar","discover","mix"],
+        phrases: [
+          "como funciona o algoritmo do spotify","como funciona algoritmo spotify",
+          "como entrar no algoritmo","como fazer spotify recomendar",
+          "como aparecer nas recomendacoes","como entrar no discover weekly",
+          "como entrar no release radar","como aumentar chance no algoritmo",
+          "spotify recomenda como"
+        ],
+        responses: [
+          "O algoritmo tende a observar sinais de comportamento e interesse. Por isso eu não focaria só em gerar plays; saves, retorno do ouvinte e outras interações também importam.",
+          "A melhor estratégia não é tentar 'enganar' o algoritmo. É gerar sinais reais de que as pessoas estão interessadas na música.",
+          "Se você quer trabalhar descoberta algorítmica, eu começaria olhando seus ouvintes, streams por ouvinte, saves e recorrência."
+        ]
+      },
+
+      saves: {
+        label: "Saves",
+        keywords: ["save","saves","salvamentos","salvar"],
+        phrases: [
+          "como aumentar saves","como conseguir saves","minha musica tem poucos saves",
+          "por que tenho poucos saves","como fazer as pessoas salvarem",
+          "save da musica","taxa de save","saves spotify"
+        ],
+        responses: [
+          "Save é um sinal interessante porque mostra uma intenção maior do que simplesmente ouvir. Você sabe quantos saves sua música tem hoje?",
+          "Se os streams estão vindo mas os saves estão baixos, eu investigaria se o público está realmente conectado com a faixa ou se está chegando gente pouco qualificada.",
+          "Dá para trabalhar isso com conteúdo e público mais alinhado. Me passa seus streams e saves que consigo contextualizar."
+        ]
+      },
+
+      listeners: {
+        label: "Ouvintes mensais",
+        keywords: ["ouvintes","ouvinte","ouvintes mensais","mensais"],
+        phrases: [
+          "como aumentar ouvintes mensais","como conseguir ouvintes mensais",
+          "meus ouvintes cairam","meus ouvintes cairam no spotify",
+          "por que meus ouvintes cairam","quantos ouvintes preciso",
+          "como aumentar meus ouvintes"
+        ],
+        responses: [
+          "Ouvintes mensais são uma métrica útil, mas eu não olharia para ela sozinha. Quantos você tem hoje e quantos tinha antes?",
+          "Se os ouvintes caíram, primeiro precisamos descobrir se acabou uma fonte de tráfego ou se a queda aconteceu em várias músicas.",
+          "Me passa seu número atual de ouvintes e, se souber, o número de algumas semanas atrás. A comparação ajuda bastante."
+        ]
+      },
+
+      ads: {
+        label: "Tráfego pago",
+        keywords: ["anuncio","anuncios","ads","trafego","meta","facebook","campanha","cpc","investimento"],
+        phrases: [
+          "quanto investir em anuncio","quanto investir em anuncios","quanto devo investir em trafego",
+          "quanto investir em trafego","quanto gastar em anuncio","quanto gastar com anuncio",
+          "quanto devo gastar","qual valor para anunciar","quanto colocar no anuncio",
+          "quanto colocar por dia","quanto investir por dia","devo fazer anuncio",
+          "vale a pena fazer anuncio","vale a pena anunciar","como anunciar minha musica",
+          "como fazer anuncio para minha musica","como divulgar minha musica com anuncio",
+          "como fazer trafego para musica","trafego pago para artista",
+          "anuncio no instagram","anuncio no facebook","meta ads para musica",
+          "meu anuncio nao funciona","meu anuncio esta ruim","meu anuncio nao esta dando resultado",
+          "meu cpc esta alto","meu custo esta alto","campanha nao vende","campanha nao funciona"
+        ],
+        responses: [
+          "Dá para usar tráfego pago, sim. O valor ideal depende do estágio e do objetivo. Você quer gerar streams, seguidores ou divulgar um lançamento?",
+          "Eu não definiria o orçamento só por um número fixo. Primeiro precisamos saber o objetivo e o tamanho do teste. Quanto você pretende investir?",
+          "Se está começando, eu prefiro um teste controlado antes de escalar. Você tem uma verba diária em mente?",
+          "Anunciar música pode funcionar, mas o anúncio precisa levar a pessoa certa para ouvir. Hoje você já está rodando alguma campanha?"
+        ]
+      },
+
+      metaAds: {
+        label: "Meta Ads",
+        keywords: ["meta ads","facebook ads","instagram ads","gerenciador","campanha meta","facebook","instagram"],
+        phrases: [
+          "como anunciar no meta","como fazer meta ads","como fazer facebook ads",
+          "como anunciar no instagram","como anunciar no facebook",
+          "campanha meta ads","meta ads para cantor","meta ads para artista",
+          "publico meta ads musica","segmentacao para musica"
+        ],
+        responses: [
+          "No Meta, eu começaria definindo o objetivo da campanha e depois testaria criativo, público e destino. Você quer levar para streaming ou ganhar seguidores?",
+          "Para música, o criativo costuma ser tão importante quanto a segmentação. Você já tem algum vídeo usando a faixa?",
+          "Dá para montar uma estrutura de teste. Quanto você tem disponível para investir nessa campanha?"
+        ]
+      },
+
+      tiktokAds: {
+        label: "TikTok Ads",
+        keywords: ["tiktok ads","anuncio tiktok","ads tiktok"],
+        phrases: [
+          "como anunciar no tiktok","como fazer tiktok ads","tiktok ads para musica",
+          "quanto investir tiktok","anuncio tiktok","campanha tiktok"
+        ],
+        responses: [
+          "No TikTok eu daria bastante atenção ao criativo e à retenção. Você já tem vídeos que usam sua música?",
+          "Dá para testar TikTok Ads, mas eu começaria com criativos que parecem conteúdo, não anúncio tradicional.",
+          "Qual é o objetivo: divulgar a música, ganhar seguidores ou levar tráfego para algum link?"
+        ]
+      },
+
+      content: {
+        label: "Conteúdo",
+        keywords: ["conteudo","reels","video","videos","postar","viral","viralizar","ideias","post"],
+        phrases: [
+          "o que postar","o que postar no instagram","o que postar no tiktok",
+          "nao sei o que postar","estou sem ideia de conteudo","estou sem ideias",
+          "preciso de ideias","me de ideias de conteudo","que tipo de conteudo fazer",
+          "como criar conteudo","como criar videos","quantos videos postar",
+          "quantos reels postar","quantos tiktoks postar",
+          "como divulgar minha musica no instagram","como divulgar minha musica no tiktok",
+          "como fazer minha musica viralizar","como viralizar minha musica",
+          "como fazer um video viral","como usar minha musica no tiktok",
+          "como criar conteudo para lancamento","conteudo para cantor",
+          "conteudo para artista","ideias para artista"
+        ],
+        responses: [
+          "Dá para criar bastante conteúdo em cima de uma música. Você já tem vídeos gravados ou está começando do zero?",
+          "Normal ficar sem ideia de conteúdo. 😅 Para artista, eu gosto de trabalhar música, personalidade e bastidores. Qual música você quer divulgar?",
+          "Tem vários formatos: trecho, história da música, bastidores, performance, opinião, tendência e conteúdo mais pessoal.",
+          "Antes de sair postando qualquer coisa, vamos pensar no objetivo. Você quer viralizar, ganhar seguidores ou levar pessoas para ouvir?"
+        ]
+      },
+
+      instagram: {
+        label: "Instagram",
+        keywords: ["instagram","insta","seguidores","reels","perfil","alcance"],
+        phrases: [
+          "como crescer no instagram","como ganhar seguidores no instagram",
+          "como conseguir seguidores","como aumentar seguidores","como crescer meu perfil",
+          "como divulgar musica no instagram","instagram para artista",
+          "o que postar no instagram","como fazer reels","como fazer reels para musica",
+          "como conseguir alcance","meu instagram nao cresce"
+        ],
+        responses: [
+          "No Instagram, eu trabalharia conteúdo + identidade do artista + distribuição da música. Hoje você está conseguindo alcance ou o perfil está parado?",
+          "Dá para crescer no Instagram, mas eu não focaria só em seguidores. Para artista, o objetivo é transformar atenção em público interessado na música.",
+          "Se o perfil não está crescendo, precisamos descobrir se o problema está no conteúdo, alcance ou conversão. Como estão suas visualizações?"
+        ]
+      },
+
+      tiktok: {
+        label: "TikTok",
+        keywords: ["tiktok","viralizar","visualizacoes","views"],
+        phrases: [
+          "como crescer no tiktok","como viralizar no tiktok","como divulgar musica no tiktok",
+          "como usar tiktok para musica","como ganhar seguidores no tiktok",
+          "como conseguir visualizacoes","meu tiktok nao cresce",
+          "como fazer musica viralizar no tiktok","quantos videos postar no tiktok"
+        ],
+        responses: [
+          "TikTok pode ser muito interessante para descoberta musical. Você já tem algum vídeo usando sua música?",
+          "Dá para testar vários formatos no TikTok. Eu começaria descobrindo qual trecho da música tem mais potencial para virar conteúdo.",
+          "Se a ideia é viralizar, não apostaria tudo em um vídeo. Melhor testar vários ângulos e observar quais prendem mais atenção."
+        ]
+      },
+
+      youtube: {
+        label: "YouTube",
+        keywords: ["youtube","yt","video","canal","inscritos"],
+        phrases: [
+          "como crescer no youtube","como ganhar inscritos no youtube",
+          "como divulgar musica no youtube","como crescer canal de musica",
+          "como conseguir views no youtube","youtube para artista",
+          "como lançar clipe","como divulgar clipe","como fazer lyric video"
+        ],
+        responses: [
+          "No YouTube, eu trabalharia música + conteúdo de descoberta + consistência. Você já tem canal ou vai começar agora?",
+          "Se você tem clipe ou lyric video, dá para trabalhar uma estratégia em torno dele. Seu objetivo é views ou construir audiência?",
+          "Para artista, YouTube pode servir tanto para descoberta quanto para aprofundar a relação com o público."
+        ]
+      },
+
+      distribution: {
+        label: "Distribuição",
+        keywords: ["distribuir","distribuicao","distribuidora","plataformas","enviar","deezer","apple music"],
+        phrases: [
+          "como distribuir minha musica","onde distribuir minha musica",
+          "como colocar minha musica no spotify","como colocar musica nas plataformas",
+          "como colocar minha musica nas plataformas","como enviar minha musica",
+          "como mandar musica para spotify","como distribuir para spotify",
+          "quanto tempo demora para distribuir","quanto tempo demora para minha musica entrar",
+          "quando minha musica entra nas plataformas","posso distribuir em varias plataformas",
+          "como funciona distribuicao","o que e distribuidora","preciso de distribuidora",
+          "como funciona a virahits","a virahits distribui musica",
+          "a virahits coloca no spotify"
+        ],
+        responses: [
+          "A distribuição é o caminho para colocar sua música nas plataformas digitais. Se quiser, posso te explicar como funciona o processo da Virahits.",
+          "Sim. A ideia é fazer sua música chegar às principais plataformas. Você está pensando em lançar uma música agora?",
+          "Consigo te explicar. Você quer entender distribuição, prazo de lançamento ou como funcionam os royalties?"
+        ]
+      },
+
+      royalties: {
+        label: "Royalties",
+        keywords: ["royalty","royalties","dinheiro","receber","pagamento","monetizar","monetizacao"],
+        phrases: [
+          "como funciona royalty","como funcionam royalties","como receber royalties",
+          "quanto recebo por stream","quanto paga cada stream","quanto spotify paga",
+          "quanto deezer paga","quanto apple music paga","como receber dinheiro da musica",
+          "como ganhar dinheiro com musica","como monetizar minha musica",
+          "quem fica com meus royalties","os royalties sao meus","como sacar royalties",
+          "quando recebo meus royalties"
+        ],
+        responses: [
+          "Royalties são uma parte importante da carreira. O valor recebido não é um número fixo universal por stream.",
+          "Dá para explicar, mas é importante separar distribuição, direitos autorais e outras fontes de receita.",
+          "Se sua dúvida é quanto pode receber, me passa uma estimativa dos streams e eu te explico como pensar nessa conta."
+        ]
+      },
+
+      career: {
+        label: "Carreira",
+        keywords: ["carreira","artista","gravadora","contrato","fas","shows","posicionamento"],
+        phrases: [
+          "como comecar minha carreira","como crescer como artista","como crescer na musica",
+          "como ser artista independente","como viver de musica","como ganhar dinheiro com musica",
+          "preciso de gravadora","vale a pena gravadora","como conseguir gravadora",
+          "como conseguir contrato","como construir carreira","como criar carreira",
+          "como me posicionar","como criar identidade artistica",
+          "como criar uma marca como artista","como construir uma base de fas",
+          "como conseguir fas","como transformar ouvintes em fas","como conseguir shows",
+          "como conseguir contratantes"
+        ],
+        responses: [
+          "Se o objetivo é carreira, eu não olharia só para streams. Precisamos pensar em público, posicionamento, conteúdo, lançamentos e receita.",
+          "Dá para montar uma estratégia de carreira. Primeiro preciso entender o estágio: você está começando ou já tem público?",
+          "Ser independente não significa fazer tudo sozinho. O importante é construir uma estrutura que faça sentido para o momento do artista."
+        ]
+      },
+
+      branding: {
+        label: "Identidade artística",
+        keywords: ["identidade","marca","imagem","posicionamento","estilo","nome"],
+        phrases: [
+          "como criar minha identidade","como criar identidade visual","como criar identidade artistica",
+          "como escolher nome artistico","como escolher meu nome","como criar minha imagem",
+          "como me posicionar","qual meu posicionamento","como criar uma marca",
+          "como criar minha marca","como ser diferente","como me destacar","como encontrar meu estilo"
+        ],
+        responses: [
+          "Para artista, identidade vai muito além de logo. É som, imagem, linguagem, estética e a forma como as pessoas reconhecem você.",
+          "Dá para trabalhar isso. Primeiro precisamos entender o que você quer que as pessoas pensem quando encontrarem seu projeto.",
+          "Se sente que o projeto está sem identidade, provavelmente precisamos alinhar música, imagem e conteúdo."
+        ]
+      },
+
+      shows: {
+        label: "Shows",
+        keywords: ["show","shows","contratante","evento","eventos","cache","cachê"],
+        phrases: [
+          "como conseguir shows","como conseguir meu primeiro show","como conseguir mais shows",
+          "como conseguir contratante","como encontrar contratantes","como fechar shows",
+          "como vender meu show","como montar proposta de show","quanto cobrar por show",
+          "quanto devo cobrar","como conseguir eventos","como entrar em eventos"
+        ],
+        responses: [
+          "Para conseguir shows, precisamos transformar seu projeto em uma proposta que faça sentido para contratantes. Você já tem material profissional para apresentar?",
+          "Dá para trabalhar isso. Você já fez shows antes ou está tentando conseguir o primeiro?",
+          "O cachê depende do momento, região, formato e demanda. Primeiro vamos entender seu cenário."
+        ]
+      },
+
+      production: {
+        label: "Produção musical",
+        keywords: ["gravar","producao","produtor","beat","mix","mixagem","master","masterizacao"],
+        phrases: [
+          "como gravar uma musica","como produzir uma musica","como fazer uma musica",
+          "como melhorar minha musica","como melhorar minha gravacao","como melhorar meu som",
+          "como fazer mixagem","como fazer master","como masterizar","como escolher produtor",
+          "preciso de produtor","como escolher beat","como escolher instrumental"
+        ],
+        responses: [
+          "Posso orientar na parte estratégica da produção, mas algumas questões técnicas dependem bastante do equipamento e do profissional.",
+          "Entendi. Você está falando da produção, mixagem ou masterização?",
+          "Se quer melhorar o som, primeiro precisamos descobrir onde está o problema: gravação, produção, mix ou master."
+        ]
+      },
+
+      analytics: {
+        label: "Métricas e diagnóstico",
+        keywords: ["dados","numero","numeros","metricas","resultado","desempenho","analise","analisar","caiu","cairam"],
+        phrases: [
+          "analisa meus numeros","analise meus numeros","pode analisar meus dados",
+          "meus numeros estao bons","meus streams estao bons","meus ouvintes estao bons",
+          "meu resultado esta bom","meu resultado esta ruim","por que meus streams cairam",
+          "meus streams cairam","meus ouvintes cairam","meus seguidores cairam",
+          "o que meus dados querem dizer","como interpretar meus dados",
+          "como analisar meus streams","como saber se estou crescendo"
+        ],
+        responses: [
+          "Consigo te ajudar a interpretar os números. Me manda streams, ouvintes, seguidores, saves ou resultados dos anúncios.",
+          "Número sozinho não diz muita coisa; o mais importante é entender a relação entre eles. Me passa os principais dados.",
+          "Vamos analisar. Se você mandar os números, consigo explicar o que eles podem estar indicando."
+        ]
+      },
+
+      diagnosis: {
+        label: "Diagnóstico",
+        keywords: ["nao funciona","ruim","baixo","caiu","parado","travado","problema","erro","flop","baixo desempenho"],
+        phrases: [
+          "minha musica nao funciona","minha musica esta ruim","minha musica esta parada",
+          "minha musica flopou","minha campanha nao funciona","meu perfil nao cresce",
+          "meus streams cairam","nao estou crescendo","nao consigo resultado",
+          "estou sem resultado","o que estou fazendo errado","onde estou errando",
+          "por que nao cresce","por que nao da resultado"
+        ],
+        responses: [
+          "Antes de concluir que está dando errado, eu quero separar o problema. É falta de alcance, pouca gente clicando ou pouca gente ficando na música?",
+          "Entendi. Vamos diagnosticar em vez de simplesmente aumentar o esforço. Qual é o número que mais está te preocupando?",
+          "Pode ser mais de uma coisa. Me passa os números que você tem e me conta o que está fazendo hoje."
+        ]
+      },
+
+      strategy: {
+        label: "Estratégia geral",
+        keywords: ["estrategia","plano","planejamento","o que fazer","proximo passo","direcao"],
+        phrases: [
+          "preciso de uma estrategia","me da uma estrategia","quero uma estrategia",
+          "me ajuda com uma estrategia","qual estrategia usar","qual melhor estrategia",
+          "o que devo fazer","o que eu faco agora","qual meu proximo passo",
+          "me da um plano","monta um plano","como planejar minha carreira"
+        ],
+        responses: [
+          "Bora montar isso. Primeiro preciso saber qual é o objetivo principal: lançar uma música, crescer audiência ou vender mais como artista?",
+          "Consigo te dar um caminho, mas não quero te passar uma receita genérica. Em que estágio seu projeto está hoje?",
+          "Vamos organizar. Qual é o maior problema que você quer resolver agora?"
+        ]
+      },
+
+      pricing: {
+        label: "Planos e preços",
+        keywords: ["preco","valor","custa","custo","investimento","plano","pro"],
+        phrases: [
+          "quanto custa","qual o preco","qual o valor","quanto e","quanto fica",
+          "quanto sai","me passa o valor","me passa o preco","tem preco","tem valor",
+          "qual investimento","quanto preciso investir","quanto custa a virahits",
+          "quanto custa o plano","quanto custa o plano pro","qual valor do pro",
+          "quanto custa o pro"
+        ],
+        responses: [
+          "Posso te explicar os planos da Virahits. Você quer saber da distribuição ou do Estrategista Pro?",
+          "Claro. Você está falando do valor da distribuição ou do Estrategista Pro?",
+          "Consigo te passar isso. Só me confirma qual serviço você está olhando."
+        ]
+      },
+
+      pro: {
+        label: "Plano Pro",
+        keywords: ["pro","plano pro","premium","estrategista pro"],
+        phrases: [
+          "o que tem no pro","o que o pro faz","como funciona o pro",
+          "vale a pena o pro","quero o pro","quero conhecer o pro",
+          "qual a diferenca do pro","diferenca plano pro","o que ganho no pro"
+        ],
+        responses: [
+          "No Pro, a proposta é sair de respostas genéricas e trabalhar análises e recomendações mais personalizadas para o projeto do artista.",
+          "O Pro é pensado para quem quer aprofundar a estratégia e ter uma visão mais personalizada do próprio projeto.",
+          "Se você me contar o que quer resolver, consigo te dizer se o Pro faz sentido para o seu momento."
+        ]
+      },
+
+      help: {
+        label: "Ajuda",
+        keywords: ["ajuda","ajudar","perdido","comeco","comecar","direcao"],
+        phrases: [
+          "preciso de ajuda","me ajuda","pode me ajudar","nao sei o que fazer",
+          "estou perdido","to perdido","o que eu faco","por onde comeco",
+          "por onde eu comeco","me da uma direcao","preciso de uma estrategia",
+          "me ajuda com minha carreira"
+        ],
+        responses: [
+          "Claro. Vamos por partes. O que mais está te travando hoje: lançamento, divulgação, streams, conteúdo ou carreira?",
+          "Bora. Me conta o que está acontecendo no seu projeto e a gente organiza o próximo passo.",
+          "Pode mandar. Não precisa explicar tudo de uma vez. Me fala qual é o principal problema agora."
+        ]
+      },
+
+      goodbye: {
+        label: "Despedida",
+        keywords: ["valeu","obrigado","obrigada","fechou","falou","ate"],
+        phrases: [
+          "obrigado","obrigada","valeu","vlw","tamo junto","ate mais",
+          "falou","flw","ate","beleza obrigado","fechou","show valeu"
+        ],
+        responses: [
+          "Tamo junto! 🚀 Boa sorte com o projeto.",
+          "Fechou! 👊 Quando quiser continuar a estratégia, é só chamar.",
+          "Valeu! Boa sorte com o próximo lançamento. 🎵"
+        ]
+      }
+    };
+  }
+
+  extractEntities(text) {
+    const e = {};
+
+    const money = text.match(
+      /(?:r\$|rs)\s?(\d+(?:[.,]\d+)?)/i
+    );
+    if (money) {
+      e.budget = Number(
+        money[1].replace(/\./g, "").replace(",", ".")
+      );
+    }
+
+    const daily = text.match(
+      /(?:r\$|rs)?\s?(\d+(?:[.,]\d+)?)\s*(?:por|\/)\s*dia/i
+    );
+    if (daily) {
+      e.dailyBudget = Number(
+        daily[1].replace(",", ".")
+      );
+    }
+
+    const genericNumber = text.match(
+      /\b(\d+(?:[.,]\d+)?)\s*(mil|k|milhao|milhoes|milhão|milhões)?\b/i
+    );
+
+    const streamMatch = text.match(
+      /(\d+(?:[.,]\d+)?)\s*(mil|k|milhao|milhoes|milhão|milhões)?\s*(streams?|plays?|reproducoes?)/i
+    );
+    if (streamMatch) {
+      e.streams = this.scaleNumber(streamMatch[1], streamMatch[2]);
+    }
+
+    const listenerMatch = text.match(
+      /(\d+(?:[.,]\d+)?)\s*(mil|k|milhao|milhoes|milhão|milhões)?\s*ouvintes?/i
+    );
+    if (listenerMatch) {
+      e.monthlyListeners = this.scaleNumber(listenerMatch[1], listenerMatch[2]);
+    }
+
+    const followerMatch = text.match(
+      /(\d+(?:[.,]\d+)?)\s*(mil|k|milhao|milhoes|milhão|milhões)?\s*(seguidores?)/i
+    );
+    if (followerMatch) {
+      e.followers = this.scaleNumber(followerMatch[1], followerMatch[2]);
+    }
+
+    const saveMatch = text.match(
+      /(\d+(?:[.,]\d+)?)\s*(mil|k|milhao|milhoes|milhão|milhões)?\s*(saves?|salvamentos?)/i
+    );
+    if (saveMatch) {
+      e.saves = this.scaleNumber(saveMatch[1], saveMatch[2]);
+    }
+
+    const viewsMatch = text.match(
+      /(\d+(?:[.,]\d+)?)\s*(mil|k|milhao|milhoes|milhão|milhões)?\s*(views?|visualizacoes?)/i
+    );
+    if (viewsMatch) {
+      e.views = this.scaleNumber(viewsMatch[1], viewsMatch[2]);
+    }
+
+    const date = text.match(
+      /\b(\d{1,2})[\/\-](\d{1,2})(?:[\/\-](\d{2,4}))?\b/
+    );
+    if (date) e.releaseDate = date[0];
+
+    this.aliases.genres.forEach(g => {
+      if (text.includes(g)) e.genre = g;
+    });
+
+    this.aliases.platforms.forEach(p => {
+      if (text.includes(p)) e.platform = p;
+    });
+
+    if (
+      text.includes("lancar") ||
+      text.includes("lancamento") ||
+      text.includes("soltar")
+    ) {
+      e.objective = "lancamento";
+    }
+
+    if (
+      text.includes("streams") ||
+      text.includes("plays") ||
+      text.includes("ouvintes")
+    ) {
+      e.objective = "crescer audiencia";
+    }
+
+    if (
+      text.includes("anuncio") ||
+      text.includes("trafego") ||
+      text.includes("ads")
+    ) {
+      e.hasAds = true;
+    }
+
+    if (
+      text.includes("comecando") ||
+      text.includes("iniciante") ||
+      text.includes("zero")
+    ) {
+      e.stage = "iniciante";
+    }
+
+    return e;
+  }
+
+  scaleNumber(raw, multiplier) {
+    let n = Number(String(raw).replace(",", "."));
+    const m = String(multiplier || "").toLowerCase();
+
+    if (m === "mil" || m === "k") n *= 1000;
+    if (["milhao","milhoes","milhão","milhões"].includes(m)) n *= 1000000;
+
+    return n;
+  }
+
+  detectIntent(text) {
+    const scores = {};
+
+    for (const [intent, module] of Object.entries(this.modules)) {
+      let score = 0;
+
+      for (const phrase of module.phrases || []) {
+        if (text.includes(phrase)) score += 12;
+      }
+
+      for (const keyword of module.keywords || []) {
+        if (text.includes(keyword)) score += 3;
+      }
+
+      // Pontuação adicional para termos muito específicos
+      if (intent === "spotify" && text.includes("spotify")) score += 8;
+      if (intent === "release" && text.includes("lanc")) score += 5;
+      if (intent === "ads" && /(r\$|investir|por dia|anuncio|trafego)/.test(text)) score += 5;
+      if (intent === "pricing" && /(quanto custa|valor|preco|investimento)/.test(text)) score += 8;
+
+      scores[intent] = score;
+    }
+
+    let bestIntent = null;
+    let bestScore = 0;
+
+    Object.entries(scores).forEach(([intent, score]) => {
+      if (score > bestScore) {
+        bestScore = score;
+        bestIntent = intent;
+      }
+    });
+
+    // Perguntas curtas usam contexto anterior
+    if (
+      bestScore < this.config.confidenceThreshold &&
+      this.context.intent &&
+      text.split(/\s+/).length <= 6
+    ) {
+      return {
+        intent: this.context.intent,
+        confidence: 5,
+        contextual: true
+      };
+    }
+
+    return {
+      intent: bestIntent,
+      confidence: bestScore,
+      contextual: false
+    };
+  }
+
+  mergeContext(entities) {
+    Object.entries(entities).forEach(([key, value]) => {
+      if (value !== null && value !== undefined) {
+        this.context[key] = value;
+      }
+    });
+  }
+
+  pickResponse(intent) {
+    const module = this.modules[intent];
+    if (!module || !module.responses?.length) return null;
+
+    let index = Math.floor(Math.random() * module.responses.length);
+
+    // Evita repetir imediatamente
+    if (
+      module.responses.length > 1 &&
+      index === this.lastResponseIndex[intent]
+    ) {
+      index = (index + 1) % module.responses.length;
+    }
+
+    this.lastResponseIndex[intent] = index;
+    return module.responses[index];
+  }
+
+  continuation(intent) {
+    const c = this.context;
+
+    if (intent === "release" && !c.releaseDate) {
+      return "Você já tem uma data definida?";
+    }
+
+    if (intent === "streams" && !c.streams) {
+      return "Quantos streams sua música tem hoje?";
+    }
+
+    if (intent === "spotify" && !c.monthlyListeners) {
+      return "E quantos ouvintes mensais você tem atualmente?";
+    }
+
+    if (intent === "ads" && !c.budget && c.dailyBudget == null) {
+      return "Você já tem uma verba em mente para esse teste?";
+    }
+
+    if (intent === "content" && !c.song) {
+      return "Qual música você quer trabalhar?";
+    }
+
+    if (intent === "career" && !c.stage) {
+      return "Você está começando agora ou já tem uma base de público?";
+    }
+
+    if (intent === "analytics" && !c.streams && !c.monthlyListeners) {
+      return "Se puder, me passa os principais números que você está vendo.";
+    }
+
+    if (intent === "diagnosis" && !c.problem) {
+      return "Qual é o principal problema que você está vendo hoje?";
+    }
+
+    return null;
+  }
+
+  fallback(text) {
+    this.context.unknownCount++;
+
+    if (this.context.unknownCount === 1) {
+      return "Hmm, não consegui entender exatamente o que você quis dizer. 😅 Me explica um pouquinho melhor?";
+    }
+
+    if (this.context.unknownCount === 2) {
+      return "Acho que peguei só uma parte. Me explica de outra forma e, se puder, me conta o que você está tentando fazer com sua música.";
+    }
+
+    if (this.context.unknownCount >= 3) {
+      return "Essa eu não consegui identificar pela minha base. Não quero inventar uma resposta e te passar algo errado. Eu sou focado em música, lançamentos, divulgação, streams e estratégia para artistas.";
+    }
+  }
+
+  maybeCorrectIntent(text, detected) {
+    // Regras para perguntas compostas
+    if (
+      text.includes("quanto") &&
+      (text.includes("investir") || text.includes("gastar")) &&
+      (text.includes("anuncio") || text.includes("trafego"))
+    ) {
+      return { intent: "ads", confidence: 20 };
+    }
+
+    if (
+      text.includes("quanto") &&
+      (text.includes("custa") || text.includes("valor") || text.includes("preco")) &&
+      (text.includes("virahits") || text.includes("pro") || text.includes("plano"))
+    ) {
+      return { intent: "pricing", confidence: 20 };
+    }
+
+    if (
+      text.includes("como") &&
+      text.includes("spotify") &&
+      text.includes("playlist")
+    ) {
+      return { intent: "playlists", confidence: 20 };
+    }
+
+    if (
+      text.includes("spotify") &&
+      text.includes("algoritmo")
+    ) {
+      return { intent: "algorithm", confidence: 20 };
+    }
+
+    return detected;
+  }
+
+  respond(userMessage) {
+    const normalized = this.normalize(userMessage);
+
+    if (!normalized) {
+      return "Pode mandar sua dúvida. 🎵";
+    }
+
+    const entities = this.extractEntities(normalized);
+    this.mergeContext(entities);
+
+    let detected = this.detectIntent(normalized);
+    detected = this.maybeCorrectIntent(normalized, detected);
+
+    // Se foi uma despedida, responde sem continuar interrogando
+    if (detected.intent === "goodbye") {
+      const answer = this.pickResponse("goodbye");
+      this.record(userMessage, answer, "goodbye");
+      return answer;
+    }
+
+    if (
+      !detected.intent ||
+      detected.confidence < this.config.confidenceThreshold
+    ) {
+      const answer = this.fallback(normalized);
+      this.record(userMessage, answer, null);
+      return answer;
+    }
+
+    this.context.unknownCount = 0;
+    this.context.previousIntent = this.context.intent;
+    this.context.intent = detected.intent;
+    this.context.confidence = detected.confidence;
+    this.context.lastQuestion = userMessage;
+
+    let answer = this.pickResponse(detected.intent);
+
+    if (!answer) {
+      answer = this.fallback(normalized);
+      this.record(userMessage, answer, detected.intent);
+      return answer;
+    }
+
+    // Evita parecer robótico: nem toda mensagem precisa terminar em pergunta.
+    const followUp = this.continuation(detected.intent);
+
+    if (followUp) {
+      // Prioriza sempre a pergunta certa (o dado que ainda falta) em vez de
+      // uma pergunta aleatória embutida na resposta — evita "pular de assunto"
+      // entre variações do mesmo módulo.
+      const statementOnly = answer.split("?")[0].trim();
+      if (statementOnly) {
+        const cleanStatement = /[.!]$/.test(statementOnly)
+          ? statementOnly
+          : statementOnly + ".";
+
+        // Se a mesma pergunta de continuidade já foi feita nessa sequência
+        // (a pessoa respondeu algo que não deu pra extrair), varia a introdução
+        // em vez de repetir a mensagem idêntica — evita sensação de loop.
+        if (this.context.lastFollowUp === followUp) {
+          answer =
+            "Só preciso de um número (mesmo aproximado) pra te orientar direito. " +
+            followUp;
+        } else {
+          answer = cleanStatement + " " + followUp;
+        }
+      } else {
+        answer = followUp;
+      }
+      this.context.lastFollowUp = followUp;
+    } else {
+      this.context.lastFollowUp = null;
+    }
+
+    this.context.lastAnswer = answer;
+    this.record(userMessage, answer, detected.intent);
+
+    return answer;
+  }
+
+  record(user, bot, intent) {
+    this.history.push({
+      timestamp: new Date().toISOString(),
+      user,
+      bot,
+      intent,
+      context: { ...this.context }
+    });
+
+    if (this.history.length > this.config.maxHistory) {
+      this.history.shift();
+    }
+  }
+
+  getContext() {
+    return { ...this.context };
+  }
+
+  getHistory() {
+    return [...this.history];
+  }
+
+  clearContext() {
+    this.context = this.emptyContext();
+    this.history = [];
+    this.lastResponseIndex = {};
+  }
+}
+
+
+// ================================================================
+// EXEMPLO DE USO
+// ================================================================
+
+/*
+const bot = new VirahitsEstrategista();
+
+console.log(bot.respond("oi"));
+console.log(bot.respond("minha musica flopou"));
+console.log(bot.respond("ta com 4 mil streams"));
+console.log(bot.respond("to gastando 20 reais por dia"));
+console.log(bot.respond("quanto devo investir"));
+console.log(bot.respond("vou lançar dia 30"));
+console.log(bot.respond("o que posto"));
+
+console.log(bot.getContext());
+*/
+
+
+if (typeof module !== "undefined" && module.exports) {
+  module.exports = VirahitsEstrategista;
+}
+if (typeof window !== "undefined") {
+  window.VirahitsEstrategista = VirahitsEstrategista;
+}
+
+</script>
+
+<script>
+  // ===== Supabase =====
+  const SUPABASE_URL = 'https://hghvzzymsctczsehozgs.supabase.co';
+  const SUPABASE_ANON_KEY = 'sb_publishable_qtmNvXevWjzI_p0QnyEFyA_uBep7nGN';
+  const supabaseClient = supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+
+  // ===== Smart Links (conectado ao Supabase) =====
+  let currentUser = null;
+  let slData = [];
+  let slEditingId = null;
+
+  async function loadSmartLinks(){
+    if(!currentUser) return;
+    const { data, error } = await supabaseClient
+      .from('smart_links')
+      .select('*')
+      .eq('user_id', currentUser.id)
+      .order('created_at', { ascending: false });
+
+    if(error){
+      console.error('Erro ao carregar smart links:', error);
+      slData = [];
+    } else {
+      slData = data || [];
+    }
+    if(document.getElementById('view-smartlinks').style.display !== 'none'){
+      renderSmartLinksList(document.getElementById('slSearchInput').value);
+    }
+  }
+
+  const platformMeta = {
+    spotify: { label: 'Spotify', color: '#1DB954' },
+    apple_music: { label: 'Apple Music', color: '#fa57c1' },
+    deezer: { label: 'Deezer', color: '#a238ff' },
+    youtube_music: { label: 'YouTube Music', color: '#ff0000' },
+    amazon_music: { label: 'Amazon Music', color: '#00a8e1' },
+    tidal: { label: 'Tidal', color: '#ffffff' },
+    soundcloud: { label: 'SoundCloud', color: '#ff7700' },
+    tiktok: { label: 'TikTok', color: '#ffffff' },
+    instagram: { label: 'Instagram', color: '#E1306C' },
+    x: { label: 'X', color: '#ffffff' },
+    whatsapp: { label: 'WhatsApp', color: '#25D366' },
+    snapchat: { label: 'Snapchat', color: '#FFFC00' },
+    vsco: { label: 'VSCO', color: '#ffffff' },
+    telegram: { label: 'Telegram', color: '#2AABEE' },
+    official_site: { label: 'Site oficial', color: '#ff5f85' },
+  };
+
+  const MAX_PLATFORMS = 5;
+
+  // pool completo: lojas de música + redes sociais, tudo selecionável igual
+  const platformPool = [
+    { key: 'spotify', urlField: 'spotify_url', label: 'Spotify',
+      svg: '<svg width="16" height="16" viewBox="0 0 24 24" fill="#1DB954"><path d="M12 0C5.4 0 0 5.4 0 12s5.4 12 12 12 12-5.4 12-12S18.66 0 12 0zm5.521 17.34c-.24.359-.66.48-1.021.24-2.82-1.74-6.36-2.101-10.561-1.141-.418.122-.779-.179-.899-.539-.12-.421.18-.78.54-.9 4.56-1.021 8.52-.6 11.64 1.32.42.18.479.659.301 1.02zm1.44-3.3c-.301.42-.841.6-1.262.3-3.239-1.98-8.161-2.58-11.939-1.38-.479.12-1.02-.12-1.14-.6-.12-.48.12-1.021.6-1.141C9.6 9.9 15 10.561 18.72 12.84c.361.181.54.78.24 1.2zm.12-3.36C15.24 8.4 8.82 8.16 5.16 9.301c-.6.179-1.2-.181-1.38-.72-.18-.601.18-1.2.72-1.381 4.26-1.26 11.28-1.02 15.721 1.621.539.3.719 1.02.419 1.56-.299.421-1.02.599-1.559.3z"/></svg>', bg:'#1DB95422' },
+    { key: 'apple_music', urlField: 'apple_music_url', label: 'Apple Music',
+      svg: '<svg width="18" height="18" viewBox="0 0 24 24"><defs><linearGradient id="amGrad" x1="0%" y1="0%" x2="100%" y2="100%"><stop offset="0%" stop-color="#FA57C1"/><stop offset="100%" stop-color="#FB5C74"/></linearGradient></defs><rect x="1" y="1" width="22" height="22" rx="6" fill="url(#amGrad)"/><path d="M16.5 6.2v7.9c0 1.15-.93 1.9-2.03 1.9-.93 0-1.68-.6-1.68-1.5 0-.83.63-1.44 1.55-1.6l1.16-.2V8.35l-5 1.02v6.83c0 1.15-.93 1.9-2.03 1.9-.93 0-1.68-.6-1.68-1.5 0-.83.63-1.44 1.55-1.6l1.16-.2V7.4c0-.4.28-.68.65-.76l5.5-1.12c.44-.09.85.22.85.68z" fill="#fff"/></svg>', bg:'#FA57C122' },
+    { key: 'deezer', urlField: 'deezer_url', label: 'Deezer',
+      svg: '<svg width="16" height="16" viewBox="0 0 24 24" fill="#a238ff"><rect x="1" y="14" width="2.5" height="4"/><rect x="5" y="11" width="2.5" height="7"/><rect x="9" y="8" width="2.5" height="10"/><rect x="13" y="5" width="2.5" height="13"/><rect x="17" y="8" width="2.5" height="10"/><rect x="21" y="11" width="2" height="7"/></svg>', bg:'#A238FF22' },
+    { key: 'youtube_music', urlField: 'youtube_music_url', label: 'YouTube Music',
+      svg: '<svg width="17" height="12" viewBox="0 0 28 20" fill="none"><path d="M27.4 3.1c-.3-1.2-1.3-2.1-2.5-2.4C22.8.1 14 .1 14 .1s-8.8 0-10.9.6c-1.2.3-2.2 1.2-2.5 2.4C0 5.2 0 10 0 10s0 4.8.6 6.9c.3 1.2 1.3 2.1 2.5 2.4C5.2 19.9 14 19.9 14 19.9s8.8 0 10.9-.6c1.2-.3 2.2-1.2 2.5-2.4.6-2.1.6-6.9.6-6.9s0-4.8-.6-6.9z" fill="#FF0000"/><path d="M11.2 14.3V5.7L18.5 10l-7.3 4.3z" fill="#fff"/></svg>', bg:'#FF000022' },
+    { key: 'amazon_music', urlField: 'amazon_music_url', label: 'Amazon Music',
+      svg: '<svg width="15" height="15" viewBox="0 0 24 24" fill="#00a8e1"><path d="M12 2L4 6v12l8 4 8-4V6l-8-4zm0 2.2L18 7v10l-6 3-6-3V7l6-2.8z"/><circle cx="12" cy="12" r="3"/></svg>', bg:'#00A8E122' },
+    { key: 'tidal', urlField: 'tidal_url', label: 'Tidal',
+      svg: '<svg width="18" height="12" viewBox="0 0 48 32" fill="#fff"><path d="M16 0l-8 8 8 8-8 8-8-8 8-8zM32 0l-8 8 8 8-8 8 8 8 8-8-8-8 8-8zM24 8l-8 8 8 8 8-8z"/></svg>', bg:'#ffffff22' },
+    { key: 'soundcloud', urlField: 'soundcloud_url', label: 'SoundCloud',
+      svg: '<svg width="17" height="13" viewBox="0 0 32 24" fill="#ff7700"><path d="M1 15h1v6H1zM3 12h1v9H3zM5 10h1v11H5zM7 9h1v12H7zM9 11h1v10H9zM11 8a8 8 0 0 1 15.5-2.7A5 5 0 0 1 30 10a5 5 0 0 1-5 5H11z"/></svg>', bg:'#FF770022' },
+    { key: 'tiktok', urlField: 'tiktok_url', label: 'TikTok',
+      svg: '<svg width="15" height="15" viewBox="0 0 24 24" fill="#fff"><path d="M16.6 5.82c-1.13-.94-1.85-2.28-1.85-3.82h-3.62v14.66c0 1.6-1.3 2.9-2.9 2.9a2.9 2.9 0 0 1-2.9-2.9 2.9 2.9 0 0 1 2.9-2.9c.31 0 .61.05.9.14v-3.68a6.65 6.65 0 0 0-.9-.06 6.5 6.5 0 0 0-6.5 6.5 6.5 6.5 0 0 0 6.5 6.5 6.5 6.5 0 0 0 6.5-6.5V8.54a8.28 8.28 0 0 0 4.85 1.56V6.48a4.85 4.85 0 0 1-2.98-.66z"/></svg>', bg:'#ffffff22' },
+    { key: 'instagram', urlField: 'instagram_url', label: 'Instagram',
+      svg: '<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#ff2e93" stroke-width="2"><rect x="2" y="2" width="20" height="20" rx="5.5"/><circle cx="12" cy="12" r="4.5"/><circle cx="17.5" cy="6.5" r="1.2" fill="#ff2e93"/></svg>', bg:'#E1306C22' },
+    { key: 'x', urlField: 'x_url', label: 'X',
+      svg: '<svg width="14" height="14" viewBox="0 0 24 24" fill="#fff"><path d="M18.9 2H22l-7.6 8.7L23.3 22H16.7l-5.2-6.8L5.5 22H2.4l8.1-9.3L1.7 2h6.8l4.7 6.2L18.9 2zm-1.2 18h1.7L7.4 3.9H5.6l12.1 16.1z"/></svg>', bg:'#ffffff22' },
+    { key: 'whatsapp', urlField: 'whatsapp_url', label: 'WhatsApp',
+      svg: '<svg width="16" height="16" viewBox="0 0 24 24" fill="#25D366"><path d="M12.04 2c-5.52 0-10 4.48-10 10 0 1.77.46 3.45 1.27 4.9L2 22l5.25-1.38a9.94 9.94 0 0 0 4.79 1.22h.01c5.52 0 10-4.48 10-10s-4.48-10-10-10zm5.85 14.13c-.25.7-1.45 1.33-2 1.42-.51.08-1.15.11-1.86-.12-.43-.14-.98-.32-1.68-.63-2.96-1.28-4.89-4.26-5.04-4.46-.15-.2-1.2-1.6-1.2-3.05 0-1.45.76-2.16 1.03-2.46.27-.3.59-.37.79-.37.2 0 .39 0 .56.01.18.01.42-.07.65.5.25.6.85 2.08.92 2.23.07.15.12.33.02.53-.1.2-.15.32-.3.49-.15.17-.31.38-.44.51-.15.15-.3.31-.13.6.17.3.76 1.25 1.63 2.02 1.12.99 2.06 1.3 2.36 1.44.3.15.47.13.65-.08.18-.2.75-.87.95-1.17.2-.3.4-.25.68-.15.28.1 1.77.84 2.07.99.3.15.5.22.57.35.08.13.08.75-.17 1.45z"/></svg>', bg:'#25D36622' },
+    { key: 'snapchat', urlField: 'snapchat_url', label: 'Snapchat',
+      svg: '<svg width="17" height="17" viewBox="0 0 32 32" fill="#FFFC00" stroke="#333" stroke-width="0.6" stroke-linejoin="round"><path d="M16 3c4.5 0 6.8 3.2 6.6 7.3-.05.9-.1 1.6-.05 2.1.65.35 1.9.15 2.4.55.5.4.15 1.1-.35 1.4-.5.3-1.5.5-1.75 1.15-.2.55.3 1.3 1.15 2.1 1.15 1.1 2.7 1.75 4.3 2-.05.85-1.65 1.35-3.5 1.6-.15.4-.3.95-.45 1.3-.2.45-.6.55-1.15.45-.75-.15-1.5-.35-2.5-.05-.9.3-1.7 1.1-3.7 1.1s-2.8-.8-3.7-1.1c-1-.3-1.75-.1-2.5.05-.55.1-.95 0-1.15-.45-.15-.35-.3-.9-.45-1.3-1.85-.25-3.45-.75-3.5-1.6 1.6-.25 3.15-.9 4.3-2 .85-.8 1.35-1.55 1.15-2.1-.25-.65-1.25-.85-1.75-1.15-.5-.3-.85-1-.35-1.4.5-.4 1.75-.2 2.4-.55.05-.5 0-1.2-.05-2.1C9.2 6.2 11.5 3 16 3z"/></svg>', bg:'#FFFC0022' },
+    { key: 'vsco', urlField: 'vsco_url', label: 'VSCO',
+      svg: '<svg width="15" height="15" viewBox="0 0 24 24" fill="#fff"><circle cx="12" cy="12" r="10"/></svg>', bg:'#ffffff22' },
+    { key: 'telegram', urlField: 'telegram_url', label: 'Telegram',
+      svg: '<svg width="16" height="16" viewBox="0 0 24 24" fill="#2AABEE"><path d="M21.5 3.5L2.5 11l6 2 1.7 6.5 3.6-4 5.4 4L21.5 3.5zM9.9 13.4l8.2-6.6-9.7 8.3z"/></svg>', bg:'#2AABEE22' },
+    { key: 'official_site', urlField: 'official_site_url', label: 'Site oficial',
+      svg: '<svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="#ff5f85" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="9"/><line x1="3" y1="12" x2="21" y2="12"/><path d="M12 3a15 15 0 0 1 0 18 15 15 0 0 1 0-18"/></svg>', bg:'#ff5f8522' },
+  ];
+
+  let selectedPlatforms = []; // array de keys selecionadas, ex: ['spotify','instagram']
+
+  // pool reduzido só com lojas de música — usado no Pré-save (sem redes sociais)
+  const storeKeysList = ['spotify','apple_music','deezer','youtube_music','amazon_music','tidal','soundcloud'];
+  const platformPoolStores = platformPool.filter(p => storeKeysList.includes(p.key));
+
+  function renderSelectorGrid(){
+    const grid = document.getElementById('slSelectorGrid');
+    grid.innerHTML = platformPool.map(p => {
+      const isSelected = selectedPlatforms.includes(p.key);
+      const disabled = !isSelected && selectedPlatforms.length >= MAX_PLATFORMS;
+      return `
+        <div class="sl-selector-item ${isSelected ? 'selected' : ''} ${disabled ? 'disabled' : ''}" data-key="${p.key}">
+          <span class="check">✓</span>
+          <span class="ic" style="background:${p.bg};">${p.svg}</span>
+          <span class="lbl">${slEsc(p.label)}</span>
+        </div>`;
+    }).join('');
+
+    grid.querySelectorAll('.sl-selector-item').forEach(el => {
+      el.addEventListener('click', () => togglePlatform(el.dataset.key));
+    });
+
+    document.getElementById('slSelCount').textContent = selectedPlatforms.length + '/' + MAX_PLATFORMS + ' selecionados';
+  }
+
+  function togglePlatform(key){
+    if(selectedPlatforms.includes(key)){
+      selectedPlatforms = selectedPlatforms.filter(k => k !== key);
+    } else {
+      if(selectedPlatforms.length >= MAX_PLATFORMS) return;
+      selectedPlatforms.push(key);
+    }
+    renderSelectorGrid();
+    renderSelectedInputs();
+  }
+
+  function renderSelectedInputs(existingData){
+    const wrap = document.getElementById('slSelectedInputs');
+    if(selectedPlatforms.length === 0){
+      wrap.innerHTML = '<p style="font-size:12.5px; color:var(--text-muted);">Selecione acima pra adicionar os links.</p>';
+      return;
+    }
+    wrap.innerHTML = selectedPlatforms.map(key => {
+      const p = platformPool.find(x => x.key === key);
+      const val = existingData && existingData[p.urlField] ? existingData[p.urlField] : '';
+      return `
+        <div class="sl-selected-field">
+          <span class="ic" style="background:${p.bg};">${p.svg}</span>
+          <input type="text" id="slInput_${p.key}" placeholder="Link do ${slEsc(p.label)}" value="${slEsc(val)}">
+        </div>`;
+    }).join('');
+  }
+
+  function slEsc(str){
+    const div = document.createElement('div');
+    div.textContent = str == null ? '' : String(str);
+    return div.innerHTML;
+  }
+
+  function switchView(viewId){
+    document.querySelectorAll('#view-overview, #view-smartlinks, #view-smartlink-form, #view-smartlink-detail, #view-smartlink-success, #view-presaves, #view-presave-form, #view-presave-detail, #view-presave-success, #view-account, #view-strategist, #view-plan-form, #view-plan-generating, #view-plan-result, #view-my-plans').forEach(v => v.style.display = 'none');
+    document.getElementById(viewId).style.display = 'block';
+  }
+
+  function renderSmartLinksList(filter){
+    const listEl = document.getElementById('slList');
+    const term = (filter || '').toLowerCase().trim();
+    const items = slData.filter(l =>
+      !term || l.track_name.toLowerCase().includes(term) || l.artist_name.toLowerCase().includes(term)
+    );
+
+    const atLimit = slData.length >= 1;
+    const newBtn = document.getElementById('btnNovoSmartLink');
+    const notice = document.getElementById('slLimitNotice');
+    newBtn.disabled = atLimit;
+    newBtn.style.opacity = atLimit ? '0.5' : '1';
+    newBtn.style.cursor = atLimit ? 'default' : 'pointer';
+    notice.style.display = atLimit ? 'block' : 'none';
+
+    if(items.length === 0){
+      listEl.innerHTML = `<div class="empty-box">Nenhum smart link encontrado.<br><span style="opacity:0.7;">Clique em "+ Novo Smart Link" pra criar o primeiro.</span></div>`;
+      return;
+    }
+
+    listEl.innerHTML = items.map(l => `
+      <div class="sl-card">
+        <div class="sl-card-cover">${l.cover_url ? `<img src="${slEsc(l.cover_url)}" style="width:100%;height:100%;object-fit:cover;border-radius:10px;">` : ''}</div>
+        <div class="sl-card-info">
+          <b>${slEsc(l.track_name)}</b>
+          <span>${slEsc(l.artist_name)}</span>
+          <a class="sl-card-link" href="${slEsc(buildPublicLink(l))}" target="_blank" rel="noopener">${slEsc(window.location.origin + buildPublicLink(l))}</a>
+        </div>
+        <div class="sl-card-actions">
+          <div class="sl-icon-btn" title="Ver analytics" onclick="openSlDetail('${l.id}')">
+            <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="18" y1="20" x2="18" y2="10"/><line x1="12" y1="20" x2="12" y2="4"/><line x1="6" y1="20" x2="6" y2="14"/></svg>
+          </div>
+          <div class="sl-icon-btn" title="Copiar link" onclick="copySlLink('${slEsc(l.id)}')">
+            <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="9" y="9" width="13" height="13" rx="2"/><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"/></svg>
+          </div>
+          <div class="sl-icon-btn" title="Editar" onclick="openSlForm('${l.id}')">
+            <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"/><path d="M18.5 2.5a2.12 2.12 0 0 1 3 3L12 15l-4 1 1-4z"/></svg>
+          </div>
+          <div class="sl-icon-btn danger" title="Excluir" onclick="deleteSl('${l.id}')">
+            <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="3 6 5 6 21 6"/><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"/></svg>
+          </div>
+        </div>
+      </div>
+    `).join('');
+  }
+
+  function slugify(str){
+    return (str || '').toLowerCase()
+      .normalize('NFD').replace(/[\u0300-\u036f]/g, '')
+      .replace(/[^a-z0-9]+/g, '-').replace(/^-+|-+$/g, '');
+  }
+
+  function openSlForm(id){
+    slEditingId = id || null;
+    document.getElementById('slFormTitle').textContent = id ? 'Editar Smart Link' : 'Novo Smart Link';
+
+    const l = id ? slData.find(x => x.id === id) : null;
+    document.getElementById('slTrackName').value = l ? l.track_name : '';
+    document.getElementById('slArtistName').value = l ? l.artist_name : '';
+    document.getElementById('slSlug').value = l ? l.slug : '';
+
+    // marca como selecionados os ambientes que já tinham link preenchido
+    selectedPlatforms = l
+      ? platformPool.filter(p => l[p.urlField]).map(p => p.key).slice(0, MAX_PLATFORMS)
+      : [];
+    renderSelectorGrid();
+    renderSelectedInputs(l);
+
+    slCoverDataUrl = l && l.cover_url ? l.cover_url : '';
+    slCoverBlob = null;
+    document.getElementById('slCoverError').style.display = 'none';
+    document.getElementById('slCoverInput').value = '';
+    if(slCoverDataUrl){
+      document.getElementById('slCoverPreview').innerHTML = `<img src="${slCoverDataUrl}" style="width:100%;height:100%;object-fit:cover;border-radius:10px;">`;
+    } else {
+      document.getElementById('slCoverPreview').innerHTML = '<svg width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="3" width="18" height="18" rx="2"/><circle cx="8.5" cy="8.5" r="1.5"/><path d="M21 15l-5-5L5 21"/></svg>';
+    }
+
+    switchView('view-smartlink-form');
+  }
+  window.openSlForm = openSlForm;
+
+  async function openSlDetail(id){
+    const l = slData.find(x => x.id === id);
+    if(!l) return;
+    document.getElementById('slDetailCover').src = l.cover_url || '';
+    document.getElementById('slDetailTitle').textContent = l.track_name;
+    document.getElementById('slDetailArtist').textContent = l.artist_name;
+    document.getElementById('slDetailLink').textContent = window.location.origin + buildPublicLink(l);
+    switchView('view-smartlink-detail');
+
+    document.getElementById('slStatViews').textContent = '...';
+    document.getElementById('slStatClicks').textContent = '...';
+    document.getElementById('slStatTop').textContent = '...';
+    document.getElementById('slStatCtr').textContent = '...';
+    document.getElementById('slPlatformBars').innerHTML = '';
+    document.getElementById('slRecentAccess').innerHTML = '';
+
+    const { data: events, error } = await supabaseClient
+      .from('smart_link_events')
+      .select('*')
+      .eq('smart_link_id', id)
+      .order('created_at', { ascending: false });
+
+    if(error){
+      console.error('Erro ao carregar analytics:', error);
+      document.getElementById('slStatViews').textContent = '0';
+      document.getElementById('slStatClicks').textContent = '0';
+      document.getElementById('slStatTop').textContent = '-';
+      document.getElementById('slStatCtr').textContent = '0%';
+      document.getElementById('slPlatformBars').innerHTML = '<li style="color:var(--text-muted); font-size:13px;">Não foi possível carregar.</li>';
+      document.getElementById('slRecentAccess').innerHTML = '';
+      return;
+    }
+
+    const views = events.filter(e => e.event_type === 'view').length;
+    const clickEvents = events.filter(e => e.event_type !== 'view');
+    const clicks = clickEvents.length;
+    const ctr = views ? Math.round((clicks / views) * 100) : 0;
+
+    document.getElementById('slStatViews').textContent = views;
+    document.getElementById('slStatClicks').textContent = clicks;
+    document.getElementById('slStatCtr').textContent = ctr + '%';
+
+    const byPlatform = {};
+    clickEvents.forEach(e => { byPlatform[e.event_type] = (byPlatform[e.event_type] || 0) + 1; });
+    const entries = Object.entries(byPlatform).sort((a,b) => b[1]-a[1]);
+    document.getElementById('slStatTop').textContent = entries.length ? (platformMeta[entries[0][0]] ? platformMeta[entries[0][0]].label : entries[0][0]) : '-';
+
+    const maxClick = entries.length ? entries[0][1] : 1;
+    document.getElementById('slPlatformBars').innerHTML = entries.map(([key, val]) => `
+      <li>
+        <div class="sl-bar-row" style="width:100%;">
+          <span class="lbl">${platformMeta[key] ? platformMeta[key].label : key}</span>
+          <div class="sl-bar-track"><div class="sl-bar-fill" style="width:${Math.round((val/maxClick)*100)}%;"></div></div>
+          <span class="val">${val}</span>
+        </div>
+      </li>
+    `).join('') || '<li style="color:var(--text-muted); font-size:13px;">Nenhum clique registrado ainda.</li>';
+
+    document.getElementById('slRecentAccess').innerHTML = events.slice(0, 8).map(e => {
+      const when = new Date(e.created_at).toLocaleString('pt-BR');
+      const where = [e.country, e.device, e.browser].filter(Boolean).join(' · ') || 'Origem desconhecida';
+      return `<li class="sl-access-item"><span>${slEsc(when)}</span>${slEsc(where)}</li>`;
+    }).join('') || '<li style="color:var(--text-muted); font-size:13px;">Nenhum acesso registrado ainda.</li>';
+  }
+  window.openSlDetail = openSlDetail;
+
+  function copySlLink(id){
+    const l = slData.find(x => x.id === id);
+    if(!l) return;
+    const url = window.location.origin + buildPublicLink(l);
+    if(navigator.clipboard){ navigator.clipboard.writeText(url); }
+    alert('Link copiado: ' + url);
+  }
+  window.copySlLink = copySlLink;
+
+  async function deleteSl(id){
+    if(!confirm('Tem certeza que quer excluir esse Smart Link?')) return;
+    const { error } = await supabaseClient.from('smart_links').delete().eq('id', id);
+    if(error){
+      alert('Não foi possível excluir: ' + error.message);
+      return;
+    }
+    await loadSmartLinks();
+  }
+  window.deleteSl = deleteSl;
+
+  document.getElementById('btnNovoSmartLink').addEventListener('click', () => {
+    if(slData.length >= 1){
+      alert('Seu plano gratuito permite 1 Smart Link ativo. Edite o existente ou exclua pra criar outro.');
+      return;
+    }
+    openSlForm(null);
+  });
+  document.getElementById('slFormBack').addEventListener('click', () => { switchView('view-smartlinks'); renderSmartLinksList(''); });
+  document.getElementById('slDetailBack').addEventListener('click', () => { switchView('view-smartlinks'); renderSmartLinksList(''); });
+  document.getElementById('slCancelBtn').addEventListener('click', () => { switchView('view-smartlinks'); renderSmartLinksList(''); });
+
+  document.getElementById('slTrackName').addEventListener('input', (e) => {
+    if(!slEditingId){ document.getElementById('slSlug').value = slugify(e.target.value); }
+  });
+
+  document.getElementById('psTrackName').addEventListener('input', (e) => {
+    if(!psEditingId){ document.getElementById('psSlug').value = slugify(e.target.value); }
+  });
+
+  // ===== Upload de capa (comprime a imagem pra caber no link, por enquanto) =====
+  let slCoverDataUrl = '';
+  let slCoverBlob = null;
+  const slCoverInput = document.getElementById('slCoverInput');
+  const slCoverBtn = document.getElementById('slCoverBtn');
+  const slCoverPreview = document.getElementById('slCoverPreview');
+  const slCoverError = document.getElementById('slCoverError');
+
+  slCoverBtn.addEventListener('click', () => slCoverInput.click());
+  document.getElementById('slCoverUpload').addEventListener('click', (e) => {
+    if(e.target === slCoverBtn) return;
+    slCoverInput.click();
+  });
+
+  slCoverInput.addEventListener('change', () => {
+    const file = slCoverInput.files[0];
+    slCoverError.style.display = 'none';
+    if(!file) return;
+
+    if(file.size > 5 * 1024 * 1024){
+      slCoverError.textContent = 'Arquivo maior que 5MB. Escolhe uma imagem menor.';
+      slCoverError.style.display = 'block';
+      slCoverInput.value = '';
+      return;
+    }
+    if(!['image/jpeg','image/png'].includes(file.type)){
+      slCoverError.textContent = 'Só aceita JPG ou PNG.';
+      slCoverError.style.display = 'block';
+      slCoverInput.value = '';
+      return;
+    }
+
+    const reader = new FileReader();
+    reader.onload = (ev) => {
+      const img = new Image();
+      img.onload = () => {
+        // redimensiona/comprime a imagem (fica leve e quadrada, ideal 1000x1000 na origem)
+        const size = 800;
+        const canvas = document.createElement('canvas');
+        canvas.width = size; canvas.height = size;
+        const ctx = canvas.getContext('2d');
+        const minSide = Math.min(img.width, img.height);
+        const sx = (img.width - minSide) / 2;
+        const sy = (img.height - minSide) / 2;
+        ctx.drawImage(img, sx, sy, minSide, minSide, 0, 0, size, size);
+        slCoverDataUrl = canvas.toDataURL('image/jpeg', 0.82);
+        slCoverPreview.innerHTML = `<img src="${slCoverDataUrl}" style="width:100%;height:100%;object-fit:cover;border-radius:10px;">`;
+        canvas.toBlob((blob) => { slCoverBlob = blob; }, 'image/jpeg', 0.82);
+      };
+      img.src = ev.target.result;
+    };
+    reader.readAsDataURL(file);
+  });
+
+  // ===== Cloudinary (hospedagem das capas) =====
+  const CLOUDINARY_CLOUD_NAME = 'tdtngzuh';
+  const CLOUDINARY_UPLOAD_PRESET = 'virahits_covers';
+
+  async function uploadCoverToCloudinary(blob, slug){
+    try{
+      const formData = new FormData();
+      formData.append('file', blob, slug + '.jpg');
+      formData.append('upload_preset', CLOUDINARY_UPLOAD_PRESET);
+      formData.append('public_id', 'virahits/' + slug + '-' + Date.now());
+
+      const res = await fetch(`https://api.cloudinary.com/v1_1/${CLOUDINARY_CLOUD_NAME}/image/upload`, {
+        method: 'POST',
+        body: formData
+      });
+
+      if(!res.ok){
+        const errText = await res.text();
+        throw new Error('Cloudinary respondeu com erro: ' + errText.slice(0, 200));
+      }
+
+      const data = await res.json();
+      return data.secure_url;
+    }catch(err){
+      console.error('Erro ao subir capa pro Cloudinary:', err);
+      alert('Não foi possível enviar a capa: ' + err.message);
+      return null;
+    }
+  }
+
+  function normalizeUrl(url){
+    url = (url || '').trim();
+    if(!url) return '';
+    if(!/^https?:\/\//i.test(url)){ url = 'https://' + url; }
+    return url;
+  }
+
+  document.getElementById('slSaveBtn').addEventListener('click', async () => {
+    const trackName = document.getElementById('slTrackName').value.trim();
+    const artistName = document.getElementById('slArtistName').value.trim();
+    const slug = slugify(document.getElementById('slSlug').value.trim());
+    if(!trackName || !artistName || !slug){
+      alert('Preenche pelo menos nome da música, artista e slug.');
+      return;
+    }
+    if(selectedPlatforms.length === 0){
+      alert('Seleciona pelo menos 1 ambiente (loja ou rede social).');
+      return;
+    }
+    if(!currentUser){
+      alert('Sessão expirada, faz login de novo.');
+      return;
+    }
+
+    const saveBtn = document.getElementById('slSaveBtn');
+    saveBtn.disabled = true;
+    saveBtn.textContent = 'Salvando...';
+
+    // sobe a capa pro Cloudinary, se uma nova foi selecionada
+    let coverUrl = slEditingId ? (slData.find(x => x.id === slEditingId) || {}).cover_url || '' : '';
+    if(slCoverBlob){
+      const uploadedUrl = await uploadCoverToCloudinary(slCoverBlob, slug);
+      if(!uploadedUrl){
+        saveBtn.disabled = false;
+        saveBtn.textContent = 'Salvar Smart Link';
+        return; // uploadCoverToCloudinary já mostrou o alerta de erro
+      }
+      coverUrl = uploadedUrl;
+    }
+
+    // monta os campos de link: começa tudo vazio, preenche só os ambientes selecionados
+    const data = {
+      track_name: trackName, artist_name: artistName, slug: slug,
+      cover_url: coverUrl,
+      spotify_url: '', apple_music_url: '', deezer_url: '', youtube_music_url: '',
+      amazon_music_url: '', tidal_url: '', soundcloud_url: '', tiktok_url: '',
+      instagram_url: '', x_url: '', whatsapp_url: '', snapchat_url: '', vsco_url: '',
+      telegram_url: '', official_site_url: '',
+    };
+    selectedPlatforms.forEach(key => {
+      const p = platformPool.find(x => x.key === key);
+      const input = document.getElementById('slInput_' + key);
+      data[p.urlField] = normalizeUrl(input ? input.value : '');
+    });
+
+    let result;
+    if(slEditingId){
+      result = await supabaseClient.from('smart_links').update(data).eq('id', slEditingId).select().single();
+    } else {
+      result = await supabaseClient.from('smart_links').insert(Object.assign({ user_id: currentUser.id }, data)).select().single();
+    }
+
+    saveBtn.disabled = false;
+    saveBtn.textContent = 'Salvar Smart Link';
+
+    if(result.error){
+      alert('Não foi possível salvar: ' + (result.error.message.includes('duplicate') ? 'esse slug já está em uso, escolhe outro.' : result.error.message));
+      return;
+    }
+
+    await loadSmartLinks();
+    showSlSuccess(result.data);
+  });
+
+  function buildPublicLink(l){
+    return '/s.html?slug=' + encodeURIComponent(l.slug);
+  }
+
+  function showSlSuccess(l){
+    const url = buildPublicLink(l);
+    const fullUrl = window.location.origin + url;
+    document.getElementById('slSuccessLink').textContent = fullUrl;
+    document.getElementById('slOpenSuccessLink').href = url;
+    document.getElementById('slCopySuccessBtn').onclick = () => {
+      if(navigator.clipboard){ navigator.clipboard.writeText(fullUrl); }
+      const btn = document.getElementById('slCopySuccessBtn');
+      const old = btn.textContent;
+      btn.textContent = 'Copiado!';
+      setTimeout(() => { btn.textContent = old; }, 1500);
+    };
+    switchView('view-smartlink-success');
+  }
+
+  document.getElementById('slBackFromSuccess').addEventListener('click', () => {
+    switchView('view-smartlinks');
+    renderSmartLinksList('');
+  });
+
+  document.getElementById('slSearchInput').addEventListener('input', (e) => renderSmartLinksList(e.target.value));
+
+  // liga o item "Smart Links" do menu à view correspondente
+  document.querySelectorAll('.sidebar-nav .nav-item').forEach(item => {
+    if(item.textContent.trim().startsWith('Smart Links')){
+      item.addEventListener('click', () => { switchView('view-smartlinks'); loadSmartLinks(); });
+    }
+    if(item.textContent.trim().startsWith('Pré-save')){
+      item.addEventListener('click', () => { switchView('view-presaves'); loadPresaves(); });
+    }
+    if(item.textContent.trim().startsWith('Visão Geral')){
+      item.addEventListener('click', () => switchView('view-overview'));
+    }
+    if(item.textContent.trim().startsWith('Minha Conta')){
+      item.addEventListener('click', () => { switchView('view-account'); loadAccountView(); });
+    }
+    if(item.textContent.trim().startsWith('Estrategista IA')){
+      item.addEventListener('click', () => { switchView('view-strategist'); initStrategistChat(); });
+    }
+    if(item.textContent.trim().startsWith('Novo Plano')){
+      item.addEventListener('click', () => openPlanForm());
+    }
+    if(item.textContent.trim().startsWith('Meus Planos')){
+      item.addEventListener('click', () => { switchView('view-my-plans'); loadMyPlans(); });
+    }
+  });
+
+  const btnGerarPlanoOverview = document.getElementById('btnGerarPlanoOverview');
+  if(btnGerarPlanoOverview){ btnGerarPlanoOverview.addEventListener('click', () => openPlanForm()); }
+
+  renderSmartLinksList('');
+
+  // ===== Pré-save (conectado ao Supabase) =====
+  let psData = [];
+  let psEditingId = null;
+  let selectedPlatformsPS = [];
+  let psCoverDataUrl = '';
+  let psCoverBlob = null;
+
+  async function loadPresaves(){
+    if(!currentUser) return;
+    const { data, error } = await supabaseClient
+      .from('presaves')
+      .select('*')
+      .eq('user_id', currentUser.id)
+      .order('created_at', { ascending: false });
+    psData = error ? [] : (data || []);
+    if(document.getElementById('view-presaves').style.display !== 'none'){
+      renderPresavesList();
+    }
+  }
+
+  function countdownLabel(releaseDate){
+    const diff = new Date(releaseDate) - new Date();
+    if(diff <= 0) return { label: 'Já lançado', done: true };
+    const days = Math.floor(diff / 86400000);
+    const hours = Math.floor((diff % 86400000) / 3600000);
+    if(days > 0) return { label: `Faltam ${days}d ${hours}h`, done: false };
+    const mins = Math.floor((diff % 3600000) / 60000);
+    return { label: `Faltam ${hours}h ${mins}min`, done: false };
+  }
+
+  function buildPresaveLink(p){
+    return '/p.html?slug=' + encodeURIComponent(p.slug);
+  }
+
+  function renderPresavesList(){
+    const listEl = document.getElementById('psList');
+    const atLimit = psData.length >= 1;
+    const newBtn = document.getElementById('btnNovoPresave');
+    newBtn.disabled = atLimit;
+    newBtn.style.opacity = atLimit ? '0.5' : '1';
+    newBtn.style.cursor = atLimit ? 'default' : 'pointer';
+    document.getElementById('psLimitNotice').style.display = atLimit ? 'block' : 'none';
+
+    if(psData.length === 0){
+      listEl.innerHTML = `<div class="empty-box">Nenhuma campanha de pré-save ainda.<br><span style="opacity:0.7;">Clique em "+ Nova campanha" pra criar.</span></div>`;
+      return;
+    }
+
+    listEl.innerHTML = psData.map(p => {
+      const cd = countdownLabel(p.release_date);
+      return `
+      <div class="sl-card">
+        <div class="sl-card-cover">${p.cover_url ? `<img src="${slEsc(p.cover_url)}" style="width:100%;height:100%;object-fit:cover;border-radius:10px;">` : ''}</div>
+        <div class="sl-card-info">
+          <b>${slEsc(p.track_name)}</b>
+          <span>${slEsc(p.artist_name)} · <span style="color:${cd.done ? '#4ade80' : '#ff5f85'};">${cd.label}</span></span>
+          <a class="sl-card-link" href="${slEsc(buildPresaveLink(p))}" target="_blank" rel="noopener">${slEsc(window.location.origin + buildPresaveLink(p))}</a>
+        </div>
+        <div class="sl-card-actions">
+          <div class="sl-icon-btn" title="Ver analytics" onclick="openPsDetail('${p.id}')">
+            <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="18" y1="20" x2="18" y2="10"/><line x1="12" y1="20" x2="12" y2="4"/><line x1="6" y1="20" x2="6" y2="14"/></svg>
+          </div>
+          <div class="sl-icon-btn" title="Copiar link" onclick="copyPsLink('${p.id}')">
+            <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="9" y="9" width="13" height="13" rx="2"/><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"/></svg>
+          </div>
+          <div class="sl-icon-btn" title="Editar" onclick="openPsForm('${p.id}')">
+            <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"/><path d="M18.5 2.5a2.12 2.12 0 0 1 3 3L12 15l-4 1 1-4z"/></svg>
+          </div>
+          <div class="sl-icon-btn danger" title="Excluir" onclick="deletePs('${p.id}')">
+            <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="3 6 5 6 21 6"/><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"/></svg>
+          </div>
+        </div>
+      </div>`;
+    }).join('');
+  }
+
+  function renderSelectorGridPS(){
+    const grid = document.getElementById('psSelectorGrid');
+    grid.innerHTML = platformPoolStores.map(p => {
+      const isSelected = selectedPlatformsPS.includes(p.key);
+      const disabled = !isSelected && selectedPlatformsPS.length >= MAX_PLATFORMS;
+      return `
+        <div class="sl-selector-item ${isSelected ? 'selected' : ''} ${disabled ? 'disabled' : ''}" data-key="${p.key}">
+          <span class="check">✓</span>
+          <span class="ic" style="background:${p.bg};">${p.svg}</span>
+          <span class="lbl">${slEsc(p.label)}</span>
+        </div>`;
+    }).join('');
+    grid.querySelectorAll('.sl-selector-item').forEach(el => {
+      el.addEventListener('click', () => togglePlatformPS(el.dataset.key));
+    });
+    document.getElementById('psSelCount').textContent = selectedPlatformsPS.length + '/' + MAX_PLATFORMS + ' selecionados';
+  }
+
+  function togglePlatformPS(key){
+    if(selectedPlatformsPS.includes(key)){
+      selectedPlatformsPS = selectedPlatformsPS.filter(k => k !== key);
+    } else {
+      if(selectedPlatformsPS.length >= MAX_PLATFORMS) return;
+      selectedPlatformsPS.push(key);
+    }
+    renderSelectorGridPS();
+    renderSelectedInputsPS();
+  }
+
+  function renderSelectedInputsPS(existingData){
+    const wrap = document.getElementById('psSelectedInputs');
+    if(selectedPlatformsPS.length === 0){
+      wrap.innerHTML = '<p style="font-size:12.5px; color:var(--text-muted);">Selecione acima pra adicionar os links.</p>';
+      return;
+    }
+    wrap.innerHTML = selectedPlatformsPS.map(key => {
+      const p = platformPoolStores.find(x => x.key === key);
+      const val = existingData && existingData[p.urlField] ? existingData[p.urlField] : '';
+      return `
+        <div class="sl-selected-field">
+          <span class="ic" style="background:${p.bg};">${p.svg}</span>
+          <input type="text" id="psInput_${p.key}" placeholder="Link do ${slEsc(p.label)}" value="${slEsc(val)}">
+        </div>`;
+    }).join('');
+  }
+
+  function toLocalDateOnly(iso){
+    if(!iso) return '';
+    const d = new Date(iso);
+    const pad = n => String(n).padStart(2,'0');
+    return `${d.getFullYear()}-${pad(d.getMonth()+1)}-${pad(d.getDate())}`;
+  }
+  function toLocalTimeOnly(iso){
+    if(!iso) return '';
+    const d = new Date(iso);
+    const pad = n => String(n).padStart(2,'0');
+    return `${pad(d.getHours())}:${pad(d.getMinutes())}`;
+  }
+
+  function openPsForm(id){
+    psEditingId = id || null;
+    document.getElementById('psFormTitle').textContent = id ? 'Editar campanha de Pré-save' : 'Nova campanha de Pré-save';
+
+    const p = id ? psData.find(x => x.id === id) : null;
+    document.getElementById('psTrackName').value = p ? p.track_name : '';
+    document.getElementById('psArtistName').value = p ? p.artist_name : '';
+    document.getElementById('psSlug').value = p ? p.slug : '';
+    document.getElementById('psReleaseDateOnly').value = p ? toLocalDateOnly(p.release_date) : '';
+    document.getElementById('psReleaseTimeOnly').value = p ? toLocalTimeOnly(p.release_date) : '';
+
+    selectedPlatformsPS = p
+      ? platformPoolStores.filter(x => p[x.urlField]).map(x => x.key).slice(0, MAX_PLATFORMS)
+      : [];
+    renderSelectorGridPS();
+    renderSelectedInputsPS(p);
+
+    psCoverDataUrl = p && p.cover_url ? p.cover_url : '';
+    psCoverBlob = null;
+    document.getElementById('psCoverError').style.display = 'none';
+    document.getElementById('psCoverInput').value = '';
+    document.getElementById('psCoverPreview').innerHTML = psCoverDataUrl
+      ? `<img src="${psCoverDataUrl}" style="width:100%;height:100%;object-fit:cover;border-radius:10px;">`
+      : '<svg width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="3" width="18" height="18" rx="2"/><circle cx="8.5" cy="8.5" r="1.5"/><path d="M21 15l-5-5L5 21"/></svg>';
+
+    switchView('view-presave-form');
+  }
+  window.openPsForm = openPsForm;
+
+  async function openPsDetail(id){
+    const p = psData.find(x => x.id === id);
+    if(!p) return;
+    document.getElementById('psDetailCover').src = p.cover_url || '';
+    document.getElementById('psDetailTitle').textContent = p.track_name;
+    document.getElementById('psDetailArtist').textContent = p.artist_name;
+    document.getElementById('psDetailLink').textContent = window.location.origin + buildPresaveLink(p);
+    switchView('view-presave-detail');
+
+    ['psStatViews','psStatClicks','psStatTop','psStatCtr'].forEach(id2 => document.getElementById(id2).textContent = '...');
+    document.getElementById('psPlatformBars').innerHTML = '';
+    document.getElementById('psRecentAccess').innerHTML = '';
+
+    const { data: events, error } = await supabaseClient
+      .from('presave_events').select('*').eq('presave_id', id).order('created_at', { ascending: false });
+
+    if(error){
+      document.getElementById('psStatViews').textContent = '0';
+      document.getElementById('psStatClicks').textContent = '0';
+      document.getElementById('psStatTop').textContent = '-';
+      document.getElementById('psStatCtr').textContent = '0%';
+      return;
+    }
+
+    const views = events.filter(e => e.event_type === 'view').length;
+    const clickEvents = events.filter(e => e.event_type !== 'view');
+    const clicks = clickEvents.length;
+    document.getElementById('psStatViews').textContent = views;
+    document.getElementById('psStatClicks').textContent = clicks;
+    document.getElementById('psStatCtr').textContent = (views ? Math.round((clicks/views)*100) : 0) + '%';
+
+    const byPlatform = {};
+    clickEvents.forEach(e => { byPlatform[e.event_type] = (byPlatform[e.event_type]||0)+1; });
+    const entries = Object.entries(byPlatform).sort((a,b) => b[1]-a[1]);
+    document.getElementById('psStatTop').textContent = entries.length ? (platformMeta[entries[0][0]] ? platformMeta[entries[0][0]].label : entries[0][0]) : '-';
+    const maxClick = entries.length ? entries[0][1] : 1;
+    document.getElementById('psPlatformBars').innerHTML = entries.map(([key,val]) => `
+      <li><div class="sl-bar-row" style="width:100%;">
+        <span class="lbl">${platformMeta[key] ? platformMeta[key].label : key}</span>
+        <div class="sl-bar-track"><div class="sl-bar-fill" style="width:${Math.round((val/maxClick)*100)}%;"></div></div>
+        <span class="val">${val}</span>
+      </div></li>`).join('') || '<li style="color:var(--text-muted); font-size:13px;">Nenhum clique registrado ainda.</li>';
+
+    document.getElementById('psRecentAccess').innerHTML = events.slice(0,8).map(e => {
+      const when = new Date(e.created_at).toLocaleString('pt-BR');
+      const where = [e.country, e.device, e.browser].filter(Boolean).join(' · ') || 'Origem desconhecida';
+      return `<li class="sl-access-item"><span>${slEsc(when)}</span>${slEsc(where)}</li>`;
+    }).join('') || '<li style="color:var(--text-muted); font-size:13px;">Nenhum acesso registrado ainda.</li>';
+  }
+  window.openPsDetail = openPsDetail;
+
+  function copyPsLink(id){
+    const p = psData.find(x => x.id === id);
+    if(!p) return;
+    const url = window.location.origin + buildPresaveLink(p);
+    if(navigator.clipboard){ navigator.clipboard.writeText(url); }
+    alert('Link copiado: ' + url);
+  }
+  window.copyPsLink = copyPsLink;
+
+  async function deletePs(id){
+    if(!confirm('Tem certeza que quer excluir essa campanha de pré-save?')) return;
+    const { error } = await supabaseClient.from('presaves').delete().eq('id', id);
+    if(error){ alert('Não foi possível excluir: ' + error.message); return; }
+    await loadPresaves();
+  }
+  window.deletePs = deletePs;
+
+  function showPsSuccess(p){
+    const url = buildPresaveLink(p);
+    const fullUrl = window.location.origin + url;
+    document.getElementById('psSuccessLink').textContent = fullUrl;
+    document.getElementById('psOpenSuccessLink').href = url;
+    document.getElementById('psCopySuccessBtn').onclick = () => {
+      if(navigator.clipboard){ navigator.clipboard.writeText(fullUrl); }
+      const btn = document.getElementById('psCopySuccessBtn');
+      const old = btn.textContent;
+      btn.textContent = 'Copiado!';
+      setTimeout(() => { btn.textContent = old; }, 1500);
+    };
+    switchView('view-presave-success');
+  }
+
+  document.getElementById('btnNovoPresave').addEventListener('click', () => {
+    if(psData.length >= 1){
+      alert('Seu plano gratuito permite 1 campanha de pré-save ativa. Edite a existente ou exclua pra criar outra.');
+      return;
+    }
+    openPsForm(null);
+  });
+  document.getElementById('psFormBack').addEventListener('click', () => { switchView('view-presaves'); renderPresavesList(); });
+  document.getElementById('psDetailBack').addEventListener('click', () => { switchView('view-presaves'); renderPresavesList(); });
+  document.getElementById('psCancelBtn').addEventListener('click', () => { switchView('view-presaves'); renderPresavesList(); });
+  document.getElementById('psBackFromSuccess').addEventListener('click', () => { switchView('view-presaves'); renderPresavesList(); });
+
+  // upload de capa (Pré-save) — mesmo padrão do Smart Link
+  document.getElementById('psCoverBtn').addEventListener('click', () => document.getElementById('psCoverInput').click());
+  document.getElementById('psCoverUpload').addEventListener('click', (e) => {
+    if(e.target === document.getElementById('psCoverBtn')) return;
+    document.getElementById('psCoverInput').click();
+  });
+  document.getElementById('psCoverInput').addEventListener('change', () => {
+    const file = document.getElementById('psCoverInput').files[0];
+    const errEl = document.getElementById('psCoverError');
+    errEl.style.display = 'none';
+    if(!file) return;
+    if(file.size > 5*1024*1024){ errEl.textContent = 'Arquivo maior que 5MB.'; errEl.style.display = 'block'; return; }
+    if(!['image/jpeg','image/png'].includes(file.type)){ errEl.textContent = 'Só aceita JPG ou PNG.'; errEl.style.display = 'block'; return; }
+
+    const reader = new FileReader();
+    reader.onload = (ev) => {
+      const img = new Image();
+      img.onload = () => {
+        const size = 800;
+        const canvas = document.createElement('canvas');
+        canvas.width = size; canvas.height = size;
+        const ctx = canvas.getContext('2d');
+        const minSide = Math.min(img.width, img.height);
+        const sx = (img.width - minSide)/2, sy = (img.height - minSide)/2;
+        ctx.drawImage(img, sx, sy, minSide, minSide, 0, 0, size, size);
+        psCoverDataUrl = canvas.toDataURL('image/jpeg', 0.82);
+        document.getElementById('psCoverPreview').innerHTML = `<img src="${psCoverDataUrl}" style="width:100%;height:100%;object-fit:cover;border-radius:10px;">`;
+        canvas.toBlob((blob) => { psCoverBlob = blob; }, 'image/jpeg', 0.82);
+      };
+      img.src = ev.target.result;
+    };
+    reader.readAsDataURL(file);
+  });
+
+  document.getElementById('psSaveBtn').addEventListener('click', async () => {
+    const trackName = document.getElementById('psTrackName').value.trim();
+    const artistName = document.getElementById('psArtistName').value.trim();
+    const slug = slugify(document.getElementById('psSlug').value.trim());
+    const dateOnly = document.getElementById('psReleaseDateOnly').value;
+    const timeOnly = document.getElementById('psReleaseTimeOnly').value || '00:00';
+
+    if(!trackName || !artistName || !slug || !dateOnly){
+      alert('Preenche nome da música ou álbum, artista, data de lançamento e slug.');
+      return;
+    }
+    if(selectedPlatformsPS.length === 0){
+      alert('Seleciona pelo menos 1 loja de música.');
+      return;
+    }
+    if(!currentUser){ alert('Sessão expirada, faz login de novo.'); return; }
+
+    const saveBtn = document.getElementById('psSaveBtn');
+    saveBtn.disabled = true;
+    saveBtn.textContent = 'Salvando...';
+
+    let coverUrl = psEditingId ? (psData.find(x => x.id === psEditingId) || {}).cover_url || '' : '';
+    if(psCoverBlob){
+      const uploadedUrl = await uploadCoverToCloudinary(psCoverBlob, slug);
+      if(!uploadedUrl){
+        saveBtn.disabled = false;
+        saveBtn.textContent = 'Salvar campanha';
+        return;
+      }
+      coverUrl = uploadedUrl;
+    }
+
+    const data = {
+      track_name: trackName, artist_name: artistName, slug: slug,
+      cover_url: coverUrl,
+      release_date: new Date(dateOnly + 'T' + timeOnly).toISOString(),
+      spotify_url: '', apple_music_url: '', deezer_url: '', youtube_music_url: '',
+      amazon_music_url: '', tidal_url: '', soundcloud_url: '', tiktok_url: '',
+      instagram_url: '', x_url: '', whatsapp_url: '', snapchat_url: '', vsco_url: '',
+      telegram_url: '', official_site_url: '',
+    };
+    selectedPlatformsPS.forEach(key => {
+      const p = platformPoolStores.find(x => x.key === key);
+      const input = document.getElementById('psInput_' + key);
+      data[p.urlField] = normalizeUrl(input ? input.value : '');
+    });
+
+    let result;
+    if(psEditingId){
+      result = await supabaseClient.from('presaves').update(data).eq('id', psEditingId).select().single();
+    } else {
+      result = await supabaseClient.from('presaves').insert(Object.assign({ user_id: currentUser.id }, data)).select().single();
+    }
+
+    saveBtn.disabled = false;
+    saveBtn.textContent = 'Salvar campanha';
+
+    if(result.error){
+      alert('Não foi possível salvar: ' + (result.error.message.includes('duplicate') ? 'esse slug já está em uso, escolhe outro.' : result.error.message));
+      return;
+    }
+
+    await loadPresaves();
+    showPsSuccess(result.data);
+  });
+
+  // ===== Minha Conta =====
+  function getDisplayName(user){
+    if(!user) return '';
+    const meta = user.user_metadata || {};
+    return meta.name || meta.real_name || user.email.split('@')[0];
+  }
+
+  function updateGreeting(){
+    if(!currentUser) return;
+    const displayName = getDisplayName(currentUser);
+    document.getElementById('greetingTitle').textContent = 'Olá, ' + displayName + ' 👋';
+  }
+
+  function loadAccountView(){
+    if(!currentUser) return;
+    const artisticName = currentUser.user_metadata?.name || '';
+    const realName = currentUser.user_metadata?.real_name || '';
+    const phone = currentUser.user_metadata?.phone || '';
+    const displayName = getDisplayName(currentUser);
+    document.getElementById('accRealName').value = realName;
+    document.getElementById('accName').value = artisticName;
+    document.getElementById('accEmail').value = currentUser.email;
+    document.getElementById('accPhone').value = phone;
+    document.getElementById('accNameDisplay').textContent = displayName;
+    document.getElementById('accEmailDisplay').textContent = currentUser.email;
+    document.getElementById('accAvatarBig').textContent = displayName.split(' ').map(w => w[0]).slice(0,2).join('').toUpperCase();
+    document.getElementById('accInfoError').style.display = 'none';
+    document.getElementById('accPassError').style.display = 'none';
+    document.getElementById('accPassSuccess').style.display = 'none';
+    document.getElementById('accNewPass').value = '';
+    document.getElementById('accConfirmPass').value = '';
+  }
+
+  document.getElementById('accSaveInfoBtn').addEventListener('click', async () => {
+    const realName = document.getElementById('accRealName').value.trim();
+    const name = document.getElementById('accName').value.trim();
+    const phone = document.getElementById('accPhone').value.trim();
+    const newEmail = document.getElementById('accEmail').value.trim();
+    const err = document.getElementById('accInfoError');
+    err.style.display = 'none';
+
+    if(!realName){
+      err.textContent = 'Preenche o nome.';
+      err.style.color = '#f87171';
+      err.style.display = 'block';
+      return;
+    }
+    if(!newEmail || !newEmail.includes('@')){
+      err.textContent = 'Preenche um e-mail válido.';
+      err.style.color = '#f87171';
+      err.style.display = 'block';
+      return;
+    }
+
+    const emailChanged = newEmail.toLowerCase() !== currentUser.email.toLowerCase();
+
+    const btn = document.getElementById('accSaveInfoBtn');
+    btn.disabled = true;
+    btn.textContent = 'Salvando...';
+
+    // dados (nome/telefone) e e-mail são atualizações separadas no Supabase
+    const updatePayload = { data: { real_name: realName, name, phone } };
+    if(emailChanged){ updatePayload.email = newEmail; }
+
+    const { data, error } = await supabaseClient.auth.updateUser(updatePayload);
+
+    btn.disabled = false;
+    btn.textContent = 'Salvar alterações';
+
+    if(error){
+      err.textContent = 'Não foi possível salvar: ' + error.message;
+      err.style.color = '#f87171';
+      err.style.display = 'block';
+      return;
+    }
+
+    currentUser = data.user;
+    const displayName = getDisplayName(currentUser);
+    document.querySelector('.topbar-user .name').textContent = displayName;
+    document.querySelector('.avatar').textContent = displayName.split(' ').map(w => w[0]).slice(0,2).join('').toUpperCase();
+    updateGreeting();
+    loadAccountView();
+
+    if(emailChanged){
+      err.textContent = 'Dados salvos! Pra confirmar o novo e-mail, verifica a caixa de entrada (às vezes chegam 2 confirmações: no e-mail antigo e no novo).';
+    } else {
+      err.textContent = 'Dados atualizados!';
+    }
+    err.style.color = '#4ade80';
+    err.style.display = 'block';
+  });
+
+  document.getElementById('accSavePassBtn').addEventListener('click', async () => {
+    const pass = document.getElementById('accNewPass').value;
+    const confirm = document.getElementById('accConfirmPass').value;
+    const err = document.getElementById('accPassError');
+    const success = document.getElementById('accPassSuccess');
+    err.style.display = 'none';
+    success.style.display = 'none';
+
+    if(!pass || pass.length < 6){
+      err.textContent = 'A senha precisa ter pelo menos 6 caracteres.';
+      err.style.display = 'block';
+      return;
+    }
+    if(pass !== confirm){
+      err.textContent = 'As senhas não coincidem.';
+      err.style.display = 'block';
+      return;
+    }
+
+    const btn = document.getElementById('accSavePassBtn');
+    btn.disabled = true;
+    btn.textContent = 'Alterando...';
+
+    const { error } = await supabaseClient.auth.updateUser({ password: pass });
+
+    btn.disabled = false;
+    btn.textContent = 'Alterar senha';
+
+    if(error){
+      err.textContent = 'Não foi possível alterar: ' + error.message;
+      err.style.display = 'block';
+      return;
+    }
+
+    document.getElementById('accNewPass').value = '';
+    document.getElementById('accConfirmPass').value = '';
+    success.textContent = 'Senha alterada com sucesso!';
+    success.style.display = 'block';
+  });
+
+  // ===== Estrategista IA (motor conversacional VirahitsEstrategista) =====
+  // Uma instância por sessão de usuário (não compartilhada entre usuários,
+  // já que cada aba do navegador tem seu próprio contexto de JS).
+  let estrategistaInstance = null;
+
+  const strategistChips = [
+    '🎵 Quero lançar uma música',
+    '📈 Quero aumentar meus streams',
+    '📱 Quero crescer nas redes',
+    '💰 Quero divulgar com anúncios'
+  ];
+
+  function initStrategistChat(){
+    if(!estrategistaInstance){
+      estrategistaInstance = new VirahitsEstrategista();
+    }
+    const body = document.getElementById('stChatBody');
+    if(body.dataset.started) return; // já iniciado, não reseta a conversa
+    body.dataset.started = '1';
+    addStrategistMessage('bot', 'Olá! Sou o Estrategista IA do ViraHits 👋 Pode falar comigo igual falaria com alguém do time — sobre streams, lançamento, redes, anúncios, o que for. O que você quer resolver hoje?');
+    renderStrategistChips();
+  }
+
+  function renderStrategistChips(){
+    const chipsEl = document.getElementById('stQuickChips');
+    chipsEl.innerHTML = strategistChips.map(c => `<button type="button" class="btn-outline" style="padding:6px 12px; font-size:11.5px; height:auto;" data-chip="${slEsc(c)}">${slEsc(c)}</button>`).join('');
+    chipsEl.querySelectorAll('[data-chip]').forEach(btn => {
+      btn.addEventListener('click', () => {
+        // remove o emoji do texto antes de mandar como pergunta
+        const text = btn.dataset.chip.replace(/^[^\wÀ-ÿ]+\s*/, '');
+        document.getElementById('stChatInput').value = text;
+        sendStrategistMessage();
+        chipsEl.innerHTML = ''; // some com os chips depois do primeiro uso, prioriza conversa natural
+      });
+    });
+  }
+
+  function addStrategistMessage(who, text){
+    const body = document.getElementById('stChatBody');
+    const isBot = who === 'bot';
+    const bubble = document.createElement('div');
+    bubble.style.cssText = `max-width:80%; align-self:${isBot ? 'flex-start' : 'flex-end'}; background:${isBot ? 'var(--card-2)' : 'linear-gradient(90deg, var(--pink), var(--orange))'}; color:${isBot ? 'var(--text)' : '#fff'}; padding:10px 14px; border-radius:12px; font-size:13.5px; line-height:1.5; ${isBot ? 'border:1px solid var(--border);' : ''}`;
+    bubble.textContent = text;
+    body.appendChild(bubble);
+    body.scrollTop = body.scrollHeight;
+    return bubble;
+  }
+
+  function showTypingIndicator(){
+    const body = document.getElementById('stChatBody');
+    const bubble = document.createElement('div');
+    bubble.id = 'stTypingIndicator';
+    bubble.style.cssText = 'align-self:flex-start; background:var(--card-2); border:1px solid var(--border); padding:10px 14px; border-radius:12px; font-size:13.5px; color:var(--text-muted);';
+    bubble.textContent = 'digitando...';
+    body.appendChild(bubble);
+    body.scrollTop = body.scrollHeight;
+  }
+
+  function hideTypingIndicator(){
+    const el = document.getElementById('stTypingIndicator');
+    if(el) el.remove();
+  }
+
+  function sendStrategistMessage(){
+    const input = document.getElementById('stChatInput');
+    const question = input.value.trim();
+    if(!question) return;
+    if(!estrategistaInstance){ estrategistaInstance = new VirahitsEstrategista(); }
+
+    addStrategistMessage('user', question);
+    input.value = '';
+    showTypingIndicator();
+
+    // pequeno atraso pra parecer conversa real, não resposta instantânea de robô
+    setTimeout(() => {
+      hideTypingIndicator();
+      const answer = estrategistaInstance.respond(question);
+      addStrategistMessage('bot', answer);
+
+      // se o motor identificou intenção relacionada ao Plano Pro, mostra o botão
+      const ctx = estrategistaInstance.getContext();
+      if(ctx.intent === 'pro'){
+        const body = document.getElementById('stChatBody');
+        const upgradeBtn = document.createElement('button');
+        upgradeBtn.className = 'btn-primary';
+        upgradeBtn.style.cssText = 'align-self:flex-start; padding:9px 16px; font-size:12.5px;';
+        upgradeBtn.textContent = 'Conhecer o Plano Pro →';
+        body.appendChild(upgradeBtn);
+        body.scrollTop = body.scrollHeight;
+      }
+    }, 600 + Math.random() * 500);
+  }
+
+  document.getElementById('stChatSendBtn').addEventListener('click', sendStrategistMessage);
+  document.getElementById('stChatInput').addEventListener('keydown', (e) => {
+    if(e.key === 'Enter'){ sendStrategistMessage(); }
+  });
+
+  // ===== Novo Plano (motor de IA via backend seguro) =====
+  let myPlansData = [];
+
+  document.querySelectorAll('.sl-form-actions, #planBudgetGrid .budget-opt').forEach(() => {}); // no-op, mantém padrão
+  document.querySelectorAll('#planBudgetGrid .budget-opt').forEach(el => {
+    el.addEventListener('click', () => {
+      document.querySelectorAll('#planBudgetGrid .budget-opt').forEach(b => b.classList.remove('selected'));
+      el.classList.add('selected');
+    });
+  });
+
+  function getPlanBudget(){
+    const el = document.querySelector('#planBudgetGrid .budget-opt.selected');
+    return el ? el.dataset.val : 'R$300';
+  }
+
+  function openPlanForm(){
+    document.getElementById('planLink').value = '';
+    document.getElementById('planArtist').value = '';
+    document.getElementById('planTrack').value = '';
+    document.getElementById('planRefs').value = '';
+    document.getElementById('planFormError').style.display = 'none';
+    document.querySelectorAll('#planBudgetGrid .budget-opt').forEach((b,i) => b.classList.toggle('selected', i===0));
+    switchView('view-plan-form');
+  }
+
+  async function fetchTrackInfo(link){
+    try{
+      if(/open\.spotify\.com/.test(link)){
+        const res = await fetch('https://open.spotify.com/oembed?url=' + encodeURIComponent(link));
+        if(!res.ok) return null;
+        const data = await res.json();
+        return { titulo: data.title || null, thumbnail: data.thumbnail_url || null, fonte: 'Spotify' };
+      }
+      if(/youtube\.com|youtu\.be/.test(link)){
+        const res = await fetch('https://www.youtube.com/oembed?url=' + encodeURIComponent(link) + '&format=json');
+        if(!res.ok) return null;
+        const data = await res.json();
+        return { titulo: data.title || null, autor: data.author_name || null, thumbnail: data.thumbnail_url || null, fonte: 'YouTube' };
+      }
+      return null;
+    }catch(e){
+      console.warn('Não foi possível buscar dados reais da música:', e);
+      return null;
+    }
+  }
+
+  async function callGeneratePlanBackend(payload, trackInfo){
+    const musicaReal = trackInfo && trackInfo.titulo
+      ? `Título real encontrado na plataforma: "${trackInfo.titulo}"${trackInfo.autor ? ' por ' + trackInfo.autor : ''}.`
+      : 'Não foi possível confirmar o título real pela plataforma, use o nome informado pelo artista.';
+
+    const res = await fetch('/.netlify/functions/generate-plan', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        artist: payload.artist, track: payload.track, genre: payload.genre,
+        goal: payload.goal, budget: payload.budget, refs: payload.refs,
+        link: payload.link, musicaReal
+      })
+    });
+
+    const data = await res.json();
+    if(!res.ok || data.error){
+      throw new Error(data.error || ('Falha na API (status ' + res.status + ')'));
+    }
+    return data.plan;
+  }
+
+  document.getElementById('planGenerateBtn').addEventListener('click', async () => {
+    const artist = document.getElementById('planArtist').value.trim();
+    const track = document.getElementById('planTrack').value.trim();
+    const link = document.getElementById('planLink').value.trim();
+    const genre = document.getElementById('planGenre').value;
+    const goal = document.getElementById('planGoal').value;
+    const refs = document.getElementById('planRefs').value.trim();
+    const budget = getPlanBudget();
+    const err = document.getElementById('planFormError');
+    err.style.display = 'none';
+
+    if(!artist || !track){
+      err.textContent = 'Preenche pelo menos o nome do artista e da música.';
+      err.style.display = 'block';
+      return;
+    }
+    if(!currentUser){
+      err.textContent = 'Sessão expirada, faz login de novo.';
+      err.style.display = 'block';
+      return;
+    }
+
+    const payload = { artist, track, link, genre, goal, refs, budget };
+    switchView('view-plan-generating');
+    document.getElementById('planGenError').style.display = 'none';
+    document.querySelectorAll('.plan-gen-item').forEach(it => { it.classList.remove('active','done'); it.querySelector('.ic').innerHTML = ''; });
+
+    const items = document.querySelectorAll('.plan-gen-item');
+    let idx = 0;
+    const stepTimer = setInterval(() => {
+      if(idx > 0){ items[idx-1].classList.remove('active'); items[idx-1].classList.add('done'); items[idx-1].querySelector('.ic').innerHTML = '<svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="#4ade80" stroke-width="3"><polyline points="20 6 9 17 4 12"/></svg>'; items[idx-1].querySelector('.ic').style.display='flex'; items[idx-1].querySelector('.ic').style.alignItems='center'; items[idx-1].querySelector('.ic').style.justifyContent='center'; }
+      if(idx < items.length){ items[idx].classList.add('active'); idx++; }
+    }, 900);
+
+    try{
+      const trackInfo = await fetchTrackInfo(link);
+      const plan = await callGeneratePlanBackend(payload, trackInfo);
+      clearInterval(stepTimer);
+      items.forEach((it,i) => { it.classList.remove('active'); it.classList.add('done'); });
+
+      // salva no Supabase
+      const { data: saved, error: saveError } = await supabaseClient.from('plans').insert({
+        user_id: currentUser.id,
+        track_name: track, artist_name: artist, link, genre, goal, budget, refs,
+        cover_url: trackInfo && trackInfo.thumbnail ? trackInfo.thumbnail : null,
+        plan_data: plan
+      }).select().single();
+
+      if(saveError){ console.warn('Não foi possível salvar o plano:', saveError); }
+
+      setTimeout(() => {
+        renderPlanResult(plan, payload, trackInfo);
+        switchView('view-plan-result');
+        if(!saveError){ loadMyPlans(); }
+      }, 500);
+    }catch(error){
+      clearInterval(stepTimer);
+      console.error('Erro ao gerar plano:', error);
+      const errBox = document.getElementById('planGenError');
+      errBox.textContent = 'Não foi possível gerar o plano agora (' + error.message + '). Tenta de novo em instantes.';
+      errBox.style.display = 'block';
+    }
+  });
+
+  function renderPlanResult(plan, payload, trackInfo){
+    const score = Number(plan.score) || 0;
+    const circumference = 2 * Math.PI * 56;
+    const offset = circumference - (score/100) * circumference;
+    const midia = plan.midia || {};
+    const meta = midia.meta || {};
+    const tiktok = midia.tiktok || {};
+
+    const foundBlock = (trackInfo && trackInfo.titulo) ? `
+      <div class="card" style="display:flex; align-items:center; gap:14px; margin-bottom:20px;">
+        ${trackInfo.thumbnail ? `<img src="${slEsc(trackInfo.thumbnail)}" alt="capa" style="width:56px; height:56px; border-radius:10px; object-fit:cover; flex-shrink:0;">` : ''}
+        <div>
+          <div style="font-size:11px; color:#4ade80; margin-bottom:2px;">✓ Encontrado no ${slEsc(trackInfo.fonte)}</div>
+          <div style="font-weight:600; font-size:14px;">${slEsc(trackInfo.titulo)}</div>
+          ${trackInfo.autor ? `<div style="font-size:12px; color:var(--text-muted);">${slEsc(trackInfo.autor)}</div>` : ''}
+        </div>
+      </div>` : '';
+
+    const html = `
+      <div class="dash-top">
+        <div>
+          <h1 class="page-title">Plano para "${slEsc(payload.track)}"</h1>
+          <p class="page-sub">Artista: ${slEsc(payload.artist)} · Gênero: ${slEsc(payload.genre)}${plan.clima ? ' · Clima: ' + slEsc(plan.clima) : ''}</p>
+        </div>
+        <span class="dash-badge">● Concluído</span>
+      </div>
+      ${foundBlock}
+      <div class="dash-grid">
+        <div class="card">
+          <div class="score-ring-wrap">
+            <div class="score-ring">
+              <svg width="130" height="130" viewBox="0 0 130 130">
+                <circle cx="65" cy="65" r="56" fill="none" stroke="rgba(255,255,255,0.06)" stroke-width="11"/>
+                <circle cx="65" cy="65" r="56" fill="none" stroke="url(#gradPlan)" stroke-width="11" stroke-linecap="round" stroke-dasharray="${circumference}" stroke-dashoffset="${offset}"/>
+                <defs><linearGradient id="gradPlan" x1="0%" y1="0%" x2="100%" y2="100%"><stop offset="0%" stop-color="#ff2d5f"/><stop offset="100%" stop-color="#c81151"/></linearGradient></defs>
+              </svg>
+              <div class="score-ring-label"><b>${slEsc(score)}</b><span>/100</span></div>
+            </div>
+          </div>
+          <div class="score-tag">${slEsc(plan.score_label || '')}</div>
+        </div>
+        <div class="card">
+          <h3>Público recomendado</h3>
+          <div class="info-row"><span class="ic">👤</span><div><b>Idade</b><span>${slEsc(plan.publico?.idade)}</span></div></div>
+          <div class="info-row"><span class="ic">📍</span><div><b>Localização</b><span>${slEsc(plan.publico?.localizacao)}</span></div></div>
+          <div class="info-row"><span class="ic">🎯</span><div><b>Interesses</b><span>${slEsc(plan.publico?.interesses)}</span></div></div>
+          <div class="info-row"><span class="ic">📊</span><div><b>Comportamento</b><span>${slEsc(plan.publico?.comportamento)}</span></div></div>
+        </div>
+      </div>
+      <div class="card" style="margin-bottom:20px;">
+        <h3>Estratégia geral</h3>
+        <p style="font-size:14px; color:#c9c4d9; line-height:1.6;">${slEsc(plan.estrategia_geral)}</p>
+      </div>
+      <div class="media-cards">
+        <div class="media-card">
+          <div class="media-card-head"><strong>Meta Ads</strong><span class="media-badge">${slEsc(midia.meta_pct)}%</span></div>
+          <div class="media-field"><b>Objetivo</b>${slEsc(meta.objetivo)}</div>
+          <div class="media-field"><b>Orçamento</b>${slEsc(meta.orcamento)}</div>
+          <div class="media-field"><b>Duração</b>${slEsc(meta.duracao)}</div>
+          <div class="media-field"><b>Estratégia</b>${slEsc(meta.estrategia)}</div>
+        </div>
+        <div class="media-card">
+          <div class="media-card-head"><strong>TikTok Ads</strong><span class="media-badge">${slEsc(midia.tiktok_pct)}%</span></div>
+          <div class="media-field"><b>Objetivo</b>${slEsc(tiktok.objetivo)}</div>
+          <div class="media-field"><b>Orçamento</b>${slEsc(tiktok.orcamento)}</div>
+          <div class="media-field"><b>Duração</b>${slEsc(tiktok.duracao)}</div>
+          <div class="media-field"><b>Estratégia</b>${slEsc(tiktok.estrategia)}</div>
+        </div>
+      </div>
+      <div class="card list-card" style="margin-bottom:20px;">
+        <h3>Ideias de vídeo com roteiro</h3>
+        <ul>${(plan.videos||[]).map((v,i) => `<li><span class="num">${i+1}</span><div><b style="display:block; color:#fff; font-weight:600; margin-bottom:2px;">${slEsc(v.ideia)}</b>${slEsc(v.roteiro)}</div></li>`).join('')}</ul>
+      </div>
+      <div class="dash-grid" style="grid-template-columns:1fr 1fr; margin-bottom:20px;">
+        <div class="card list-card">
+          <h3>Artistas parecidos</h3>
+          <ul>${(plan.artistas_parecidos||[]).map(c => `<li><span class="check">🎵</span>${slEsc(c)}</li>`).join('')}</ul>
+        </div>
+        <div class="card list-card">
+          <h3>Táticas de viralização</h3>
+          <ul>${(plan.taticas_virais||[]).map(c => `<li><span class="check">🚀</span>${slEsc(c)}</li>`).join('')}</ul>
+        </div>
+      </div>
+      <div class="three-col" style="grid-template-columns:1fr 1fr;">
+        <div class="card list-card">
+          <h3>Copies</h3>
+          <ul>${(plan.copies||[]).map(c => `<li><span class="check">✓</span>${slEsc(c)}</li>`).join('')}</ul>
+        </div>
+        <div class="card list-card">
+          <h3>Headlines</h3>
+          <ul>${(plan.headlines||[]).map(c => `<li><span class="check">✓</span>${slEsc(c)}</li>`).join('')}</ul>
+        </div>
+      </div>
+      <div class="card list-card" style="margin-top:20px;">
+        <h3>Checklist essencial</h3>
+        <ul>${(plan.checklist||[]).map(c => `<li><span class="check">✓</span>${slEsc(c)}</li>`).join('')}</ul>
+      </div>
+    `;
+    document.getElementById('planResultContent').innerHTML = html;
+  }
+
+  document.getElementById('planResultBack').addEventListener('click', () => { switchView('view-my-plans'); loadMyPlans(); });
+  document.getElementById('btnNovoPlanoFromList').addEventListener('click', openPlanForm);
+
+  async function loadMyPlans(){
+    if(!currentUser) return;
+    const { data, error } = await supabaseClient
+      .from('plans').select('*').eq('user_id', currentUser.id).order('created_at', { ascending: false });
+    myPlansData = error ? [] : (data || []);
+    renderMyPlansList();
+  }
+
+  function renderMyPlansList(){
+    const listEl = document.getElementById('myPlansList');
+    if(myPlansData.length === 0){
+      listEl.innerHTML = `<div class="empty-box">Você ainda não gerou nenhum plano.<br><span style="opacity:0.7;">Clique em "+ Novo Plano" pra começar.</span></div>`;
+      return;
+    }
+    listEl.innerHTML = myPlansData.map(p => `
+      <div class="sl-card">
+        <div class="sl-card-cover">${p.cover_url ? `<img src="${slEsc(p.cover_url)}" style="width:100%;height:100%;object-fit:cover;border-radius:10px;">` : ''}</div>
+        <div class="sl-card-info">
+          <b>${slEsc(p.track_name)}</b>
+          <span>${slEsc(p.artist_name)} · ${slEsc(p.genre || '')} · Score ${slEsc((p.plan_data && p.plan_data.score) || '-')}/100</span>
+        </div>
+        <div class="sl-card-actions">
+          <div class="sl-icon-btn" title="Ver plano" onclick="openPlanDetail('${p.id}')">
+            <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/></svg>
+          </div>
+          <div class="sl-icon-btn danger" title="Excluir" onclick="deletePlan('${p.id}')">
+            <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="3 6 5 6 21 6"/><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"/></svg>
+          </div>
+        </div>
+      </div>
+    `).join('');
+  }
+
+  function openPlanDetail(id){
+    const p = myPlansData.find(x => x.id === id);
+    if(!p) return;
+    const payload = { artist: p.artist_name, track: p.track_name, genre: p.genre, goal: p.goal, budget: p.budget, refs: p.refs, link: p.link };
+    const trackInfo = p.cover_url ? { titulo: p.track_name, thumbnail: p.cover_url, fonte: 'salvo' } : null;
+    renderPlanResult(p.plan_data, payload, trackInfo);
+    switchView('view-plan-result');
+  }
+  window.openPlanDetail = openPlanDetail;
+
+  async function deletePlan(id){
+    if(!confirm('Tem certeza que quer excluir esse plano?')) return;
+    const { error } = await supabaseClient.from('plans').delete().eq('id', id);
+    if(error){ alert('Não foi possível excluir: ' + error.message); return; }
+    await loadMyPlans();
+  }
+  window.deletePlan = deletePlan;
+
+  // ===== Sidebar mobile (gaveta) =====
+  const sidebar = document.getElementById('sidebar');
+  const sidebarOverlay = document.getElementById('sidebarOverlay');
+  const hamburgerBtn = document.getElementById('hamburgerBtn');
+
+  function openSidebar(){ sidebar.classList.add('open'); sidebarOverlay.classList.add('open'); }
+  function closeSidebar(){ sidebar.classList.remove('open'); sidebarOverlay.classList.remove('open'); }
+
+  if(hamburgerBtn){ hamburgerBtn.addEventListener('click', openSidebar); }
+  if(sidebarOverlay){ sidebarOverlay.addEventListener('click', closeSidebar); }
+  document.querySelectorAll('.sidebar-nav .nav-item').forEach(item => {
+    item.addEventListener('click', () => {
+      document.querySelectorAll('.sidebar-nav .nav-item').forEach(i => i.classList.remove('active'));
+      item.classList.add('active');
+      closeSidebar();
+    });
+  });
+  const sairItem = document.querySelector('.sidebar-footer .nav-item');
+  if(sairItem){
+    sairItem.addEventListener('click', async () => {
+      closeSidebar();
+      await supabaseClient.auth.signOut();
+      document.getElementById('dashboardView').style.display = 'none';
+      document.getElementById('authView').style.display = 'flex';
+      document.getElementById('loginEmail').value = '';
+      document.getElementById('loginPass').value = '';
+    });
+  }
+
+  // ===== Mostrar/esconder senha =====
+  document.querySelectorAll('.pass-toggle').forEach(btn => {
+    btn.addEventListener('click', () => {
+      const input = document.getElementById(btn.dataset.target);
+      input.type = input.type === 'password' ? 'text' : 'password';
+      btn.style.color = input.type === 'text' ? '#ff5f85' : '';
+    });
+  });
+
+  // ===== Login / Cadastro =====
+  const authView = document.getElementById('authView');
+  const dashboardView = document.getElementById('dashboardView');
+  const loginScreen = document.getElementById('loginScreen');
+  const signupScreen = document.getElementById('signupScreen');
+
+  document.getElementById('goToSignup').addEventListener('click', () => {
+    loginScreen.style.display = 'none';
+    signupScreen.style.display = 'block';
+  });
+  document.getElementById('goToLogin').addEventListener('click', () => {
+    signupScreen.style.display = 'none';
+    loginScreen.style.display = 'block';
+  });
+
+  document.getElementById('loginBtn').addEventListener('click', async () => {
+    const email = document.getElementById('loginEmail').value.trim();
+    const pass = document.getElementById('loginPass').value.trim();
+    const err = document.getElementById('loginError');
+    const btn = document.getElementById('loginBtn');
+
+    if(!email || !pass){
+      err.textContent = 'Preenche e-mail e senha pra continuar.';
+      err.style.display = 'block';
+      return;
+    }
+
+    err.style.display = 'none';
+    btn.disabled = true;
+    btn.textContent = 'Entrando...';
+
+    const { data, error } = await supabaseClient.auth.signInWithPassword({ email, password: pass });
+
+    btn.disabled = false;
+    btn.textContent = 'Entrar';
+
+    if(error){
+      err.textContent = error.message.includes('Invalid login credentials')
+        ? 'E-mail ou senha incorretos.'
+        : 'Não foi possível entrar: ' + error.message;
+      err.style.display = 'block';
+      return;
+    }
+
+    currentUser = data.user;
+    const displayName = getDisplayName(currentUser);
+    document.querySelector('.topbar-user .name').textContent = displayName;
+    document.querySelector('.avatar').textContent = displayName.split(' ').map(w => w[0]).slice(0,2).join('').toUpperCase();
+    enterDashboard();
+  });
+
+  document.getElementById('signupBtn').addEventListener('click', async () => {
+    const name = document.getElementById('signupName').value.trim();
+    const email = document.getElementById('signupEmail').value.trim();
+    const phone = document.getElementById('signupPhone').value.trim();
+    const pass = document.getElementById('signupPass').value.trim();
+    const termsOk = document.getElementById('signupTerms').checked;
+    const err = document.getElementById('signupError');
+    const btn = document.getElementById('signupBtn');
+
+    if(!name || !email || !phone || !pass || !termsOk){
+      err.textContent = 'Preenche todos os campos e aceita os termos pra continuar.';
+      err.style.display = 'block';
+      return;
+    }
+    if(pass.length < 6){
+      err.textContent = 'A senha precisa ter pelo menos 6 caracteres.';
+      err.style.display = 'block';
+      return;
+    }
+
+    err.style.display = 'none';
+    btn.disabled = true;
+    btn.textContent = 'Criando conta...';
+
+    const { data, error } = await supabaseClient.auth.signUp({
+      email,
+      password: pass,
+      options: { data: { name, phone } }
+    });
+
+    btn.disabled = false;
+    btn.textContent = 'Criar conta';
+
+    if(error){
+      err.textContent = error.message.includes('already registered')
+        ? 'Esse e-mail já está cadastrado. Tenta fazer login.'
+        : 'Não foi possível criar a conta: ' + error.message;
+      err.style.display = 'block';
+      return;
+    }
+
+    document.querySelector('.topbar-user .name').textContent = name;
+    document.querySelector('.avatar').textContent = name.split(' ').map(w => w[0]).slice(0,2).join('').toUpperCase();
+    currentUser = data.user;
+
+    if(!data.session){
+      // confirmação de e-mail ativada no Supabase: ainda não há sessão
+      err.textContent = 'Conta criada! Confere seu e-mail pra confirmar antes de entrar.';
+      err.style.color = '#4ade80';
+      err.style.display = 'block';
+      return;
+    }
+
+    enterDashboard();
+  });
+
+  function enterDashboard(){
+    authView.style.display = 'none';
+    dashboardView.style.display = 'flex';
+    updateGreeting();
+    loadSmartLinks();
+    loadPresaves();
+  }
+
+  // Atalho só pra testar o visual do painel aqui no preview, sem depender do Supabase
+  const devPreviewLink = document.getElementById('devPreviewLink');
+  if(devPreviewLink){
+    devPreviewLink.addEventListener('click', () => {
+      document.querySelector('.topbar-user .name').textContent = 'Modo Teste';
+      document.querySelector('.avatar').textContent = 'MT';
+      authView.style.display = 'none';
+      dashboardView.style.display = 'flex';
+      // não chama loadSmartLinks/loadPresaves (não tem usuário real) — só mostra o visual vazio
+    });
+  }
+
+  // Se já existe uma sessão ativa (usuário já logado antes), pula direto pro painel
+  (async () => {
+    const { data } = await supabaseClient.auth.getSession();
+    if(data.session){
+      const user = data.session.user;
+      currentUser = user;
+      const displayName = getDisplayName(currentUser);
+      document.querySelector('.topbar-user .name').textContent = displayName;
+      document.querySelector('.avatar').textContent = displayName.split(' ').map(w => w[0]).slice(0,2).join('').toUpperCase();
+      enterDashboard();
+    }
+  })();
+</script>
+
+</body>
+</html>
